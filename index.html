@@ -78,10 +78,11 @@
       <h1 class="font-orbitron text-3xl sm:text-4xl font-extrabold tracking-wider text-slate-100">
         FATH <span class="text-sky-400 text-2xl">2.0</span>
       </h1>
-      <button onclick="openSyncModal()" id="header-sync-status" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 hover:text-sky-300 border border-slate-700 flex items-center gap-1.5 transition">
-        <span class="w-2 h-2 rounded-full bg-slate-500" id="sync-dot"></span>
-        <span id="sync-code-label">Sync Offline</span>
-      </button>
+      <!-- Subtle cloud indicator (No room codes shown) -->
+      <div id="header-sync-status" class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700 flex items-center gap-1.5 select-none">
+        <span class="w-2 h-2 rounded-full bg-emerald-400" id="sync-dot"></span>
+        <span id="sync-code-label">Cloud: Connected</span>
+      </div>
     </div>
     <p class="text-xs sm:text-sm text-slate-400 tracking-wide mt-1 font-medium">
       Above Ascendance &bull; 27 Dec 2026
@@ -234,7 +235,6 @@
           </button>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="openSyncModal()" class="text-xs bg-sky-950/70 border border-sky-800 hover:bg-sky-900 px-3 py-1.5 rounded-lg text-sky-300 font-semibold">☁️ Cloud Sync</button>
           <button onclick="openChangePinModal()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-slate-300">Change PIN</button>
           <button onclick="exitAdminPortal()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-slate-300">Exit Admin</button>
         </div>
@@ -357,41 +357,7 @@
     </section>
   </main>
 
-  <!-- CLOUD SYNC MODAL (Option 2) -->
-  <div id="modal-sync" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
-      <div class="flex items-center gap-2 mb-2">
-        <span class="text-xl">☁️</span>
-        <h3 class="text-base font-bold font-orbitron text-slate-100">Multi-Device Cloud Sync</h3>
-      </div>
-      <p class="text-xs text-slate-400 mb-4">Connect all tablets and phones by using the same 6-character room code.</p>
-
-      <div class="space-y-3">
-        <div>
-          <label class="text-xs text-slate-400 block mb-1">Room Sync Code (e.g. FATH26)</label>
-          <input type="text" id="sync-room-input" placeholder="Enter 6 letters/numbers" maxlength="12" class="input-field uppercase text-center font-orbitron tracking-widest text-lg font-bold text-sky-400">
-        </div>
-        <div class="grid grid-cols-2 gap-3 pt-2">
-          <button onclick="uploadToCloudRoom()" class="btn-primary text-xs flex flex-col py-2.5">
-            <span>⬆️ Upload to Room</span>
-            <span class="text-[10px] opacity-75 font-normal">(Run on primary tablet)</span>
-          </button>
-          <button onclick="downloadFromCloudRoom()" class="btn-secondary text-xs flex flex-col py-2.5 hover:border-sky-500">
-            <span>⬇️ Connect & Download</span>
-            <span class="text-[10px] opacity-75 font-normal">(Run on other tablets)</span>
-          </button>
-        </div>
-        <div class="text-[11px] text-slate-400 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 mt-2">
-          💡 Once connected, changes automatically sync in the background across all devices using this code.
-        </div>
-        <div class="pt-2 text-right">
-          <button onclick="closeSyncModal()" class="btn-secondary text-xs">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- OTHER MODALS (Teams, Members, Programs, Podium, Override, PIN) -->
+  <!-- MODALS -->
   <div id="modal-team" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
       <h3 id="modal-team-title" class="text-base font-bold font-orbitron text-slate-100 mb-4">Add Team</h3>
@@ -577,8 +543,10 @@
   <div id="toast" class="toast-box fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-xs z-50 shadow-lg"></div>
 
   <script>
+    // HARDCODED GLOBAL SYNC CHANNEL (Hidden & Universal across all devices)
+    const MASTER_CLOUD_CHANNEL = 'fath2026_ascendance_master_sync';
     const STORAGE_KEY = 'FATH_2_0_PRODUCTION_APP_DATA';
-    const SYNC_CODE_KEY = 'FATH_2_0_SYNC_ROOM_CODE';
+    const SESSION_KEY = 'FATH_2_0_CURRENT_ACTIVE_SESSION';
 
     const DEFAULT_PROD_DATA = {
       adminPin: '@Fath#2026!',
@@ -595,7 +563,6 @@
     let appData = loadProductionData();
     let currentJudge = null;
     let currentScoringProgId = null;
-    let syncRoomCode = localStorage.getItem(SYNC_CODE_KEY) || '';
     let autoSyncTimer = null;
 
     function loadProductionData() {
@@ -611,7 +578,7 @@
 
     function saveProductionData(syncToCloud = true) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-      if (syncToCloud && syncRoomCode) {
+      if (syncToCloud) {
         pushToCloud();
       }
     }
@@ -623,108 +590,95 @@
       setTimeout(() => el.classList.remove('show'), 2200);
     }
 
-    // CLOUD SYNC ENGINE (Option 2: 6-Character Room Code)
-    function openSyncModal() {
-      document.getElementById('sync-room-input').value = syncRoomCode;
-      document.getElementById('modal-sync').classList.remove('hidden');
-    }
-    function closeSyncModal() {
-      document.getElementById('modal-sync').classList.add('hidden');
+    // SESSION PERSISTENCE (Preserves screen on page reload/refresh)
+    function saveSession(view, sub = null) {
+      const s = { view, sub, judge: currentJudge };
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
     }
 
-    function updateSyncBadge(status) {
-      const dot = document.getElementById('sync-dot');
-      const label = document.getElementById('sync-code-label');
-      if (!syncRoomCode) {
-        dot.className = "w-2 h-2 rounded-full bg-slate-500";
-        label.innerText = "Sync Offline";
-      } else if (status === 'syncing') {
-        dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
-        label.innerText = `Syncing [${syncRoomCode}]`;
-      } else {
-        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-        label.innerText = `Room: ${syncRoomCode}`;
-      }
-    }
-
-    async function pushToCloud() {
-      if (!syncRoomCode) return;
+    function restoreSession() {
       try {
-        updateSyncBadge('syncing');
-        await fetch(`https://ntfy.sh/fath2026_room_${syncRoomCode.toLowerCase()}`, {
+        const raw = sessionStorage.getItem(SESSION_KEY);
+        if (!raw) return false;
+        const s = JSON.parse(raw);
+        if (s.view === 'admin') {
+          openAdminTerminal(s.sub || 'overview', false);
+          return true;
+        } else if (s.view === 'judge' && s.judge) {
+          currentJudge = s.judge;
+          openJudgePortal(false);
+          return true;
+        } else if (s.view === 'scoring' && s.judge && s.sub) {
+          currentJudge = s.judge;
+          openScoringSheet(s.sub, false);
+          return true;
+        }
+      } catch(e) {}
+      return false;
+    }
+
+    function clearSession() {
+      sessionStorage.removeItem(SESSION_KEY);
+    }
+
+    // CLOUD SYNC ENGINE (Completely automated in background)
+    async function pushToCloud() {
+      try {
+        const dot = document.getElementById('sync-dot');
+        const label = document.getElementById('sync-code-label');
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+        if (label) label.innerText = "Cloud: Syncing...";
+
+        await fetch(`https://ntfy.sh/${MASTER_CLOUD_CHANNEL}`, {
           method: 'POST',
           body: JSON.stringify(appData),
           headers: { 'Title': 'FATH_UPDATE', 'Priority': 'low' }
         });
-        updateSyncBadge('connected');
+
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        if (label) label.innerText = "Cloud: Connected";
       } catch (err) {
-        console.error("Cloud push failed:", err);
-        updateSyncBadge('connected');
+        const dot = document.getElementById('sync-dot');
+        const label = document.getElementById('sync-code-label');
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-slate-500";
+        if (label) label.innerText = "Cloud: Offline";
       }
     }
 
-    async function uploadToCloudRoom() {
-      const code = document.getElementById('sync-room-input').value.trim().toUpperCase();
-      if (!code || code.length < 3) { alert("Please enter a valid room code (3 to 8 characters)."); return; }
-      syncRoomCode = code;
-      localStorage.setItem(SYNC_CODE_KEY, syncRoomCode);
-      showToast(`Uploading fest data to room ${syncRoomCode}...`);
-      await pushToCloud();
-      startAutoSync();
-      closeSyncModal();
-      showToast(`Connected! Room ${syncRoomCode} is active.`);
-    }
-
-    async function downloadFromCloudRoom() {
-      const code = document.getElementById('sync-room-input').value.trim().toUpperCase();
-      if (!code || code.length < 3) { alert("Please enter a valid room code."); return; }
-      syncRoomCode = code;
-      localStorage.setItem(SYNC_CODE_KEY, syncRoomCode);
-      showToast(`Connecting to room ${syncRoomCode}...`);
-
+    async function initialCloudFetch() {
       try {
-        const res = await fetch(`https://ntfy.sh/fath2026_room_${syncRoomCode.toLowerCase()}/json?poll=1`);
+        const res = await fetch(`https://ntfy.sh/${MASTER_CLOUD_CHANNEL}/json?poll=1`);
         const text = await res.text();
         const lines = text.trim().split('\n').filter(Boolean);
-        let latestData = null;
+        let latest = null;
 
         for (let i = lines.length - 1; i >= 0; i--) {
           try {
             const parsed = JSON.parse(lines[i]);
             if (parsed.message) {
-              const testData = JSON.parse(parsed.message);
-              if (testData.teams && testData.members) {
-                latestData = testData;
+              const test = JSON.parse(parsed.message);
+              if (test.teams && test.members) {
+                latest = test;
                 break;
               }
             }
           } catch(e) {}
         }
 
-        if (latestData) {
-          appData = latestData;
-          saveProductionData(false);
-          startAutoSync();
-          closeSyncModal();
+        if (latest) {
+          appData = latest;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
           refreshActiveView();
-          showToast(`Downloaded! All data synced with room ${syncRoomCode}.`);
-        } else {
-          alert(`No existing data found in room ${syncRoomCode}. Make sure you tapped 'Upload' first on Tablet 1.`);
         }
-      } catch (err) {
-        alert("Failed to connect. Check internet connection.");
-      }
+      } catch(e) {}
     }
 
     function startAutoSync() {
       if (autoSyncTimer) clearInterval(autoSyncTimer);
-      if (!syncRoomCode) return;
-      updateSyncBadge('connected');
-
-      // Poll every 15 seconds for updates made by judges or other tablets
+      // Auto-fetch latest updates every 10 seconds across all devices
       autoSyncTimer = setInterval(async () => {
         try {
-          const res = await fetch(`https://ntfy.sh/fath2026_room_${syncRoomCode.toLowerCase()}/json?poll=1&since=30s`);
+          const res = await fetch(`https://ntfy.sh/${MASTER_CLOUD_CHANNEL}/json?poll=1&since=25s`);
           const text = await res.text();
           const lines = text.trim().split('\n').filter(Boolean);
           for (let i = lines.length - 1; i >= 0; i--) {
@@ -742,7 +696,7 @@
             } catch(e) {}
           }
         } catch(e) {}
-      }, 15000);
+      }, 10000);
     }
 
     function refreshActiveView() {
@@ -756,14 +710,16 @@
       }
     }
 
-    // APP ROUTING & VIEWS
+    // NAVIGATION & PORTALS
     function hideAllViews() {
       document.getElementById('view-landing').classList.add('hidden');
       document.getElementById('view-judge').classList.add('hidden');
       document.getElementById('view-scoring-sheet').classList.add('hidden');
       document.getElementById('view-admin').classList.add('hidden');
     }
+
     function showLanding() {
+      clearSession();
       hideAllViews();
       document.getElementById('view-landing').classList.remove('hidden');
     }
@@ -774,6 +730,7 @@
       document.getElementById('judge-input-name').value = '';
       document.getElementById('judge-input-key').value = '';
     }
+
     function verifyJudgeAccess() {
       const name = document.getElementById('judge-input-name').value.trim();
       const key = document.getElementById('judge-input-key').value.trim();
@@ -781,35 +738,50 @@
       if (!appData.judgeKeys[key]) { alert("Invalid Judge Passkey"); return; }
       currentJudge = { id: appData.judgeKeys[key].id, label: appData.judgeKeys[key].label, name, key };
       closeJudgeLogin();
-      openJudgePortal();
+      openJudgePortal(true);
     }
-    function openJudgePortal() {
+
+    function openJudgePortal(saveState = true) {
       hideAllViews();
       document.getElementById('view-judge').classList.remove('hidden');
       document.getElementById('judge-display-name').innerText = currentJudge.name;
       document.getElementById('judge-slot-tag').innerText = currentJudge.label;
       renderJudgeProgramLists();
+      if (saveState) saveSession('judge');
     }
-    function exitJudgePortal() { currentJudge = null; showLanding(); }
+
+    function exitJudgePortal() {
+      currentJudge = null;
+      showLanding();
+    }
 
     function showAdminLogin() { document.getElementById('modal-admin-login').classList.remove('hidden'); }
     function closeAdminLogin() {
       document.getElementById('modal-admin-login').classList.add('hidden');
       document.getElementById('admin-input-pin').value = '';
     }
+
     function verifyAdminAccess() {
       const pin = document.getElementById('admin-input-pin').value.trim();
-      if (pin === appData.adminPin) { closeAdminLogin(); openAdminTerminal(); }
-      else { alert("Incorrect PIN Code"); }
+      if (pin === appData.adminPin) {
+        closeAdminLogin();
+        openAdminTerminal('overview', true);
+      } else {
+        alert("Incorrect PIN Code");
+      }
     }
-    function openAdminTerminal() {
+
+    function openAdminTerminal(tab = 'overview', saveState = true) {
       hideAllViews();
       document.getElementById('view-admin').classList.remove('hidden');
-      switchAdminTab('overview');
+      switchAdminTab(tab, saveState);
     }
-    function exitAdminPortal() { showLanding(); }
 
-    function switchAdminTab(tab) {
+    function exitAdminPortal() {
+      showLanding();
+    }
+
+    function switchAdminTab(tab, saveState = true) {
       document.getElementById('tab-btn-overview').classList.remove('tab-active', 'text-slate-400');
       document.getElementById('tab-btn-management').classList.remove('tab-active', 'text-slate-400');
       document.getElementById('tab-btn-results').classList.remove('tab-active', 'text-slate-400');
@@ -831,9 +803,11 @@
         document.getElementById('tab-content-results').classList.remove('hidden');
         renderJudgeResults();
       }
+
+      if (saveState) saveSession('admin', tab);
     }
 
-    // CALCULATIONS
+    // SCORING & CALCULATION HELPERS
     function getProgramScores(progId) { return (appData.scores && appData.scores[progId]) ? appData.scores[progId] : {}; }
     function getParticipantPoints(progId, partId) {
       const pScores = getProgramScores(progId);
@@ -865,7 +839,7 @@
       return { teamTotals, studentTotals };
     }
 
-    // JUDGES LISTS & SCORING
+    // JUDGES PROGRAM LISTS & SCORING
     function renderJudgeProgramLists() {
       const stageInd = document.getElementById('judge-stage-ind-list');
       const stageTeam = document.getElementById('judge-stage-team-list');
@@ -878,7 +852,7 @@
       nonStageTeam.innerHTML = '';
 
       if (appData.programs.length === 0) {
-        stageInd.innerHTML = `<div class="p-4 text-xs text-slate-500 italic">No programs created yet.</div>`;
+        stageInd.innerHTML = `<div class="p-4 text-xs text-slate-500 italic">No programs scheduled yet.</div>`;
         return;
       }
 
@@ -886,7 +860,7 @@
         const isSubmitted = isProgSubmittedByJudge(prog.id, currentJudge.id);
         const card = document.createElement('div');
         card.className = "cosmic-card p-3.5 flex items-center justify-between cursor-pointer hover:border-sky-500/50";
-        card.onclick = () => openScoringSheet(prog.id);
+        card.onclick = () => openScoringSheet(prog.id, true);
 
         card.innerHTML = `
           <div>
@@ -915,7 +889,7 @@
       return keys.some(k => pScores[k][lockField]);
     }
 
-    function openScoringSheet(progId) {
+    function openScoringSheet(progId, saveState = true) {
       currentScoringProgId = progId;
       const prog = appData.programs.find(p => p.id === progId);
       if (!prog) return;
@@ -971,6 +945,8 @@
         `;
         container.appendChild(card);
       });
+
+      if (saveState) saveSession('scoring', progId);
     }
 
     function submitJudgeScores() {
@@ -996,10 +972,11 @@
       });
 
       saveProductionData();
-      showToast("Scores submitted & synced.");
-      openScoringSheet(currentScoringProgId);
+      showToast("Scores submitted and synchronized.");
+      openScoringSheet(currentScoringProgId, false);
     }
-    function backToJudgePrograms() { openJudgePortal(); }
+
+    function backToJudgePrograms() { openJudgePortal(true); }
 
     // OVERVIEW
     function renderOverview() {
@@ -1665,13 +1642,16 @@
     });
     history.pushState(null, '', location.href);
 
-    // INIT
-    if (syncRoomCode) {
+    // INITIALIZATION & SESSION RESTORE
+    initialCloudFetch().then(() => {
       startAutoSync();
-    } else {
-      updateSyncBadge('offline');
+    });
+
+    // Check if user was previously in a session
+    const restored = restoreSession();
+    if (!restored) {
+      showLanding();
     }
-    showLanding();
   </script>
 </body>
 </html>
