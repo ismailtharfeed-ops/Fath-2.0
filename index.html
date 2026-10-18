@@ -57,6 +57,19 @@
       transition: all 0.2s;
     }
     .btn-secondary:hover { background: #334155; color: #ffffff; }
+    .btn-danger {
+      background: #e11d48;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-danger:hover { background: #be123c; }
     .tab-active {
       color: #38bdf8;
       border-bottom: 2px solid #38bdf8;
@@ -78,7 +91,6 @@
       <h1 class="font-orbitron text-3xl sm:text-4xl font-extrabold tracking-wider text-slate-100">
         FATH <span class="text-sky-400 text-2xl">2.0</span>
       </h1>
-      <!-- Subtle cloud indicator (No room codes shown) -->
       <div id="header-sync-status" class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700 flex items-center gap-1.5 select-none">
         <span class="w-2 h-2 rounded-full bg-emerald-400" id="sync-dot"></span>
         <span id="sync-code-label">Cloud: Connected</span>
@@ -155,7 +167,7 @@
         <button onclick="exitJudgePortal()" class="btn-secondary text-xs">Exit Session</button>
       </div>
 
-      <!-- Main Stage Section -->
+      <!-- Stage Section -->
       <div class="cosmic-card p-5">
         <h2 class="font-orbitron text-lg font-bold text-slate-100 pb-3 border-b border-slate-800">Stage Programs</h2>
         <div class="mt-4">
@@ -174,7 +186,7 @@
         </div>
       </div>
 
-      <!-- Main Non-Stage Section -->
+      <!-- Non-Stage Section -->
       <div class="cosmic-card p-5">
         <h2 class="font-orbitron text-lg font-bold text-slate-100 pb-3 border-b border-slate-800">Non-Stage Programs</h2>
         <div class="mt-4">
@@ -282,6 +294,7 @@
 
       <!-- TAB 2: FEST MANAGEMENT -->
       <div id="tab-content-management" class="hidden space-y-6">
+        <!-- Teams -->
         <div class="cosmic-card p-5">
           <div class="flex items-center justify-between mb-4">
             <div>
@@ -293,6 +306,7 @@
           <div id="management-teams-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
         </div>
 
+        <!-- Participants -->
         <div class="cosmic-card p-5">
           <div class="flex items-center justify-between mb-4">
             <div>
@@ -317,6 +331,7 @@
           </div>
         </div>
 
+        <!-- Programs -->
         <div class="cosmic-card p-5">
           <div class="flex items-center justify-between mb-4">
             <div>
@@ -340,6 +355,24 @@
             </table>
           </div>
         </div>
+
+        <!-- Danger Zone: Master Fest Reset -->
+        <div class="cosmic-card p-5 border border-rose-950/80 bg-rose-950/10">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 class="font-orbitron text-sm font-bold text-rose-300 flex items-center gap-2">
+                <span>⚠️</span> Master Reset Zone
+              </h3>
+              <p class="text-xs text-slate-400 mt-1 max-w-lg">
+                Permanently erase all teams, participants, programs, and submitted scores across all devices. Protected with an 8-character Master PIN.
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openChangeResetPinModal()" class="btn-secondary text-xs">Change Reset PIN</button>
+              <button onclick="openResetConfirmModal()" class="btn-danger text-xs">Reset Everything</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- TAB 3: JUDGE RESULTS & SCORING -->
@@ -357,7 +390,52 @@
     </section>
   </main>
 
-  <!-- MODALS -->
+  <!-- MASTER RESET CONFIRMATION MODAL -->
+  <div id="modal-reset-confirm" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="cosmic-card w-full max-w-md p-6 bg-[#0c0d16] border-rose-900/60 shadow-2xl">
+      <div class="flex items-center gap-2 mb-2 text-rose-400">
+        <span class="text-2xl">🚨</span>
+        <h3 class="text-base font-bold font-orbitron">Confirm Master Reset</h3>
+      </div>
+      <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+        This action will permanently wipe all teams, students, events, and judge marks from this device and the cloud.
+      </p>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">Enter 8-Character Master Reset PIN</label>
+          <input type="password" id="reset-input-pin" maxlength="16" placeholder="••••••••" class="input-field text-center font-orbitron tracking-widest text-base font-bold text-rose-400 border-rose-900/80">
+        </div>
+        <div class="flex gap-3 pt-3">
+          <button onclick="closeResetConfirmModal()" class="btn-secondary flex-1">Cancel</button>
+          <button onclick="executeMasterReset()" class="btn-danger flex-1">Wipe All Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE MASTER RESET PIN MODAL -->
+  <div id="modal-change-reset-pin" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
+      <h3 class="text-base font-bold font-orbitron text-slate-100 mb-4">Change Reset PIN</h3>
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">Current Master Reset PIN</label>
+          <input type="password" id="reset-pin-current" class="input-field">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">New 8-Character Master Reset PIN</label>
+          <input type="password" id="reset-pin-new" placeholder="Min 8 letters, numbers, symbols" class="input-field">
+        </div>
+        <div class="flex gap-3 pt-3">
+          <button onclick="closeChangeResetPinModal()" class="btn-secondary flex-1">Cancel</button>
+          <button onclick="saveNewResetPin()" class="btn-primary flex-1">Update Reset PIN</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OTHER MODALS -->
   <div id="modal-team" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
       <h3 id="modal-team-title" class="text-base font-bold font-orbitron text-slate-100 mb-4">Add Team</h3>
@@ -543,13 +621,14 @@
   <div id="toast" class="toast-box fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-xs z-50 shadow-lg"></div>
 
   <script>
-    // HARDCODED GLOBAL SYNC CHANNEL (Hidden & Universal across all devices)
+    // GLOBAL HIDDEN SYNC CHANNEL
     const MASTER_CLOUD_CHANNEL = 'fath2026_ascendance_master_sync';
     const STORAGE_KEY = 'FATH_2_0_PRODUCTION_APP_DATA';
     const SESSION_KEY = 'FATH_2_0_CURRENT_ACTIVE_SESSION';
 
     const DEFAULT_PROD_DATA = {
       adminPin: '@Fath#2026!',
+      resetPin: 'RST#8942', // Default 8-character mixed Master Reset PIN
       judgeKeys: {
         'JDG-8492': { id: 'judge1', label: 'Judge 1' },
         'JDG-5173': { id: 'judge2', label: 'Judge 2' }
@@ -568,7 +647,11 @@
     function loadProductionData() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) return JSON.parse(raw);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (!parsed.resetPin) parsed.resetPin = DEFAULT_PROD_DATA.resetPin;
+          return parsed;
+        }
       } catch (e) {
         console.error(e);
       }
@@ -621,7 +704,7 @@
       sessionStorage.removeItem(SESSION_KEY);
     }
 
-    // CLOUD SYNC ENGINE (Completely automated in background)
+    // CLOUD SYNC ENGINE
     async function pushToCloud() {
       try {
         const dot = document.getElementById('sync-dot');
@@ -657,7 +740,7 @@
             const parsed = JSON.parse(lines[i]);
             if (parsed.message) {
               const test = JSON.parse(parsed.message);
-              if (test.teams && test.members) {
+              if (test.teams !== undefined && test.members !== undefined) {
                 latest = test;
                 break;
               }
@@ -675,7 +758,6 @@
 
     function startAutoSync() {
       if (autoSyncTimer) clearInterval(autoSyncTimer);
-      // Auto-fetch latest updates every 10 seconds across all devices
       autoSyncTimer = setInterval(async () => {
         try {
           const res = await fetch(`https://ntfy.sh/${MASTER_CLOUD_CHANNEL}/json?poll=1&since=25s`);
@@ -686,7 +768,7 @@
               const parsed = JSON.parse(lines[i]);
               if (parsed.message) {
                 const newData = JSON.parse(parsed.message);
-                if (newData.teams && newData.members) {
+                if (newData.teams !== undefined && newData.members !== undefined) {
                   appData = newData;
                   localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
                   refreshActiveView();
@@ -710,7 +792,75 @@
       }
     }
 
-    // NAVIGATION & PORTALS
+    // MASTER RESET HANDLERS
+    function openResetConfirmModal() {
+      document.getElementById('reset-input-pin').value = '';
+      document.getElementById('modal-reset-confirm').classList.remove('hidden');
+    }
+    function closeResetConfirmModal() {
+      document.getElementById('modal-reset-confirm').classList.add('hidden');
+    }
+
+    function executeMasterReset() {
+      const pin = document.getElementById('reset-input-pin').value.trim();
+      const currentResetPin = appData.resetPin || DEFAULT_PROD_DATA.resetPin;
+
+      if (pin !== currentResetPin) {
+        alert("Incorrect Master Reset PIN. Access denied.");
+        return;
+      }
+
+      // Preserve existing authentication PINs while wiping all event data
+      const preservedAdminPin = appData.adminPin;
+      const preservedResetPin = currentResetPin;
+      const preservedJudgeKeys = appData.judgeKeys;
+
+      appData = {
+        adminPin: preservedAdminPin,
+        resetPin: preservedResetPin,
+        judgeKeys: preservedJudgeKeys,
+        teams: [],
+        members: [],
+        programs: [],
+        scores: {}
+      };
+
+      saveProductionData(true);
+      closeResetConfirmModal();
+      refreshActiveView();
+      showToast("Master Reset Complete! All event data wiped.");
+    }
+
+    function openChangeResetPinModal() {
+      document.getElementById('reset-pin-current').value = '';
+      document.getElementById('reset-pin-new').value = '';
+      document.getElementById('modal-change-reset-pin').classList.remove('hidden');
+    }
+    function closeChangeResetPinModal() {
+      document.getElementById('modal-change-reset-pin').classList.add('hidden');
+    }
+
+    function saveNewResetPin() {
+      const cur = document.getElementById('reset-pin-current').value;
+      const neu = document.getElementById('reset-pin-new').value.trim();
+      const activePin = appData.resetPin || DEFAULT_PROD_DATA.resetPin;
+
+      if (cur !== activePin) {
+        alert("Current Master Reset PIN is incorrect.");
+        return;
+      }
+      if (!neu || neu.length < 8) {
+        alert("New Reset PIN must be at least 8 characters long.");
+        return;
+      }
+
+      appData.resetPin = neu;
+      saveProductionData(true);
+      closeChangeResetPinModal();
+      showToast("Master Reset PIN updated successfully.");
+    }
+
+    // NAVIGATION & AUTH
     function hideAllViews() {
       document.getElementById('view-landing').classList.add('hidden');
       document.getElementById('view-judge').classList.add('hidden');
@@ -807,7 +957,7 @@
       if (saveState) saveSession('admin', tab);
     }
 
-    // SCORING & CALCULATION HELPERS
+    // SCORING & CALCULATIONS
     function getProgramScores(progId) { return (appData.scores && appData.scores[progId]) ? appData.scores[progId] : {}; }
     function getParticipantPoints(progId, partId) {
       const pScores = getProgramScores(progId);
@@ -839,7 +989,7 @@
       return { teamTotals, studentTotals };
     }
 
-    // JUDGES PROGRAM LISTS & SCORING
+    // JUDGES LISTS
     function renderJudgeProgramLists() {
       const stageInd = document.getElementById('judge-stage-ind-list');
       const stageTeam = document.getElementById('judge-stage-team-list');
@@ -1602,7 +1752,7 @@
       }
     }
 
-    // PIN
+    // ADMIN PIN MANAGEMENT
     function openChangePinModal() {
       document.getElementById('pin-current').value = '';
       document.getElementById('pin-new').value = '';
@@ -1647,7 +1797,6 @@
       startAutoSync();
     });
 
-    // Check if user was previously in a session
     const restored = restoreSession();
     if (!restored) {
       showLanding();
