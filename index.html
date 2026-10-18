@@ -16,18 +16,14 @@
       min-height: 100vh;
       -webkit-tap-highlight-color: transparent;
     }
-    .font-orbitron {
-      font-family: 'Orbitron', sans-serif;
-    }
+    .font-orbitron { font-family: 'Orbitron', sans-serif; }
     .cosmic-card {
       background: #0b1120;
       border: 1px solid #1e293b;
       border-radius: 14px;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .cosmic-card:hover {
-      border-color: #334155;
-    }
+    .cosmic-card:hover { border-color: #334155; }
     .input-field {
       background: #080d19;
       border: 1px solid #1e293b;
@@ -38,9 +34,7 @@
       outline: none;
       transition: border-color 0.2s;
     }
-    .input-field:focus {
-      border-color: #38bdf8;
-    }
+    .input-field:focus { border-color: #38bdf8; }
     .btn-primary {
       background: #0284c7;
       color: #ffffff;
@@ -53,9 +47,7 @@
       justify-content: center;
       gap: 8px;
     }
-    .btn-primary:hover {
-      background: #0369a1;
-    }
+    .btn-primary:hover { background: #0369a1; }
     .btn-secondary {
       background: #1e293b;
       color: #cbd5e1;
@@ -64,10 +56,7 @@
       font-weight: 500;
       transition: all 0.2s;
     }
-    .btn-secondary:hover {
-      background: #334155;
-      color: #ffffff;
-    }
+    .btn-secondary:hover { background: #334155; color: #ffffff; }
     .tab-active {
       color: #38bdf8;
       border-bottom: 2px solid #38bdf8;
@@ -78,19 +67,22 @@
       opacity: 0;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .toast-box.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
+    .toast-box.show { transform: translateY(0); opacity: 1; }
   </style>
 </head>
 <body class="p-3 sm:p-6 pb-20">
 
   <!-- Header -->
-  <header class="max-w-6xl mx-auto text-center mb-8 pt-4">
-    <h1 class="font-orbitron text-3xl sm:text-4xl font-extrabold tracking-wider text-slate-100">
-      FATH <span class="text-sky-400 text-2xl">2.0</span>
-    </h1>
+  <header class="max-w-6xl mx-auto text-center mb-6 pt-4 relative">
+    <div class="flex items-center justify-center gap-3">
+      <h1 class="font-orbitron text-3xl sm:text-4xl font-extrabold tracking-wider text-slate-100">
+        FATH <span class="text-sky-400 text-2xl">2.0</span>
+      </h1>
+      <button onclick="openSyncModal()" id="header-sync-status" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 hover:text-sky-300 border border-slate-700 flex items-center gap-1.5 transition">
+        <span class="w-2 h-2 rounded-full bg-slate-500" id="sync-dot"></span>
+        <span id="sync-code-label">Sync Offline</span>
+      </button>
+    </div>
     <p class="text-xs sm:text-sm text-slate-400 tracking-wide mt-1 font-medium">
       Above Ascendance &bull; 27 Dec 2026
     </p>
@@ -98,19 +90,15 @@
 
   <main class="max-w-6xl mx-auto">
     <!-- VIEW 1: LANDING SELECTION -->
-    <section id="view-landing" class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto pt-6">
+    <section id="view-landing" class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto pt-4">
       <div onclick="showJudgeLogin()" class="cosmic-card p-8 cursor-pointer hover:border-sky-500 text-center flex flex-col items-center justify-center min-h-[220px]">
-        <div class="w-14 h-14 rounded-2xl bg-sky-500/10 text-sky-400 flex items-center justify-center text-2xl mb-4 font-bold">
-          ⚖️
-        </div>
+        <div class="w-14 h-14 rounded-2xl bg-sky-500/10 text-sky-400 flex items-center justify-center text-2xl mb-4 font-bold">⚖️</div>
         <h2 class="text-xl font-bold font-orbitron text-slate-100">Judges Portal</h2>
         <p class="text-xs text-slate-400 mt-2 max-w-xs">Access assigned stage and non-stage evaluations with authorized passkey.</p>
       </div>
 
       <div onclick="showAdminLogin()" class="cosmic-card p-8 cursor-pointer hover:border-slate-500 text-center flex flex-col items-center justify-center min-h-[220px]">
-        <div class="w-14 h-14 rounded-2xl bg-slate-800 text-slate-300 flex items-center justify-center text-2xl mb-4 font-bold">
-          🛡️
-        </div>
+        <div class="w-14 h-14 rounded-2xl bg-slate-800 text-slate-300 flex items-center justify-center text-2xl mb-4 font-bold">🛡️</div>
         <h2 class="text-xl font-bold font-orbitron text-slate-100">Admin Settings</h2>
         <p class="text-xs text-slate-400 mt-2 max-w-xs">Manage teams, participants, schedules, dual judge tally, and leaderboard.</p>
       </div>
@@ -169,7 +157,6 @@
       <!-- Main Stage Section -->
       <div class="cosmic-card p-5">
         <h2 class="font-orbitron text-lg font-bold text-slate-100 pb-3 border-b border-slate-800">Stage Programs</h2>
-        
         <div class="mt-4">
           <div class="flex items-center gap-3 my-2">
             <span class="text-xs font-bold text-sky-400 tracking-wider">INDIVIDUAL</span>
@@ -177,7 +164,6 @@
           </div>
           <div id="judge-stage-ind-list" class="space-y-2.5"></div>
         </div>
-
         <div class="mt-6">
           <div class="flex items-center gap-3 my-2">
             <span class="text-xs font-bold text-sky-400 tracking-wider">TEAM</span>
@@ -190,7 +176,6 @@
       <!-- Main Non-Stage Section -->
       <div class="cosmic-card p-5">
         <h2 class="font-orbitron text-lg font-bold text-slate-100 pb-3 border-b border-slate-800">Non-Stage Programs</h2>
-        
         <div class="mt-4">
           <div class="flex items-center gap-3 my-2">
             <span class="text-xs font-bold text-sky-400 tracking-wider">INDIVIDUAL</span>
@@ -198,7 +183,6 @@
           </div>
           <div id="judge-nonstage-ind-list" class="space-y-2.5"></div>
         </div>
-
         <div class="mt-6">
           <div class="flex items-center gap-3 my-2">
             <span class="text-xs font-bold text-sky-400 tracking-wider">TEAM</span>
@@ -227,21 +211,16 @@
           <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Participants Performance Order</h3>
           <span class="text-xs text-slate-400">Order by Code Letter (A, B, C...)</span>
         </div>
-
         <div id="scoring-participants-container" class="space-y-4"></div>
-
         <div class="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between">
           <div id="scoring-lock-notice" class="text-xs text-slate-400"></div>
-          <button id="btn-submit-scores" onclick="submitJudgeScores()" class="btn-primary">
-            Submit Scores Permanently
-          </button>
+          <button id="btn-submit-scores" onclick="submitJudgeScores()" class="btn-primary">Submit Scores Permanently</button>
         </div>
       </div>
     </section>
 
     <!-- VIEW 6: ADMIN TERMINAL -->
     <section id="view-admin" class="hidden space-y-6">
-      <!-- Admin Nav Bar -->
       <div class="cosmic-card p-3 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-1 sm:gap-2">
           <button onclick="switchAdminTab('overview')" id="tab-btn-overview" class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition tab-active">
@@ -255,6 +234,7 @@
           </button>
         </div>
         <div class="flex items-center gap-2">
+          <button onclick="openSyncModal()" class="text-xs bg-sky-950/70 border border-sky-800 hover:bg-sky-900 px-3 py-1.5 rounded-lg text-sky-300 font-semibold">☁️ Cloud Sync</button>
           <button onclick="openChangePinModal()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-slate-300">Change PIN</button>
           <button onclick="exitAdminPortal()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-slate-300">Exit Admin</button>
         </div>
@@ -262,7 +242,6 @@
 
       <!-- TAB 1: OVERVIEW & LEADERBOARD -->
       <div id="tab-content-overview" class="space-y-6">
-        <!-- Highlights -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="cosmic-card p-5 border-l-4 border-l-sky-500">
             <span class="text-xs uppercase text-slate-400 tracking-wider font-semibold">Leading Team</span>
@@ -276,19 +255,16 @@
           </div>
         </div>
 
-        <!-- Team Standings -->
         <div>
           <h3 class="font-orbitron text-base font-bold text-slate-100 mb-3">Team Standings</h3>
           <div id="overview-team-standings" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
-        <!-- Team Members & Participants (Side-by-Side) -->
         <div>
           <h3 class="font-orbitron text-base font-bold text-slate-100 mb-3">Team Members & Participants</h3>
           <div id="overview-team-members" class="grid grid-cols-1 lg:grid-cols-3 gap-6"></div>
         </div>
 
-        <!-- Master Program Schedule -->
         <div class="cosmic-card p-5">
           <h3 class="font-orbitron text-base font-bold text-slate-100 mb-4 pb-2 border-b border-slate-800">Master Program Schedule</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -306,7 +282,6 @@
 
       <!-- TAB 2: FEST MANAGEMENT -->
       <div id="tab-content-management" class="hidden space-y-6">
-        <!-- Dynamic Teams Section -->
         <div class="cosmic-card p-5">
           <div class="flex items-center justify-between mb-4">
             <div>
@@ -318,7 +293,6 @@
           <div id="management-teams-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
         </div>
 
-        <!-- Members Section -->
         <div class="cosmic-card p-5">
           <div class="flex items-center justify-between mb-4">
             <div>
@@ -343,7 +317,6 @@
           </div>
         </div>
 
-        <!-- Programs Section -->
         <div class="cosmic-card p-5">
           <div class="flex items-center justify-between mb-4">
             <div>
@@ -384,9 +357,41 @@
     </section>
   </main>
 
-  <!-- MODALS -->
+  <!-- CLOUD SYNC MODAL (Option 2) -->
+  <div id="modal-sync" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-xl">☁️</span>
+        <h3 class="text-base font-bold font-orbitron text-slate-100">Multi-Device Cloud Sync</h3>
+      </div>
+      <p class="text-xs text-slate-400 mb-4">Connect all tablets and phones by using the same 6-character room code.</p>
 
-  <!-- Add/Edit Team Modal -->
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">Room Sync Code (e.g. FATH26)</label>
+          <input type="text" id="sync-room-input" placeholder="Enter 6 letters/numbers" maxlength="12" class="input-field uppercase text-center font-orbitron tracking-widest text-lg font-bold text-sky-400">
+        </div>
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <button onclick="uploadToCloudRoom()" class="btn-primary text-xs flex flex-col py-2.5">
+            <span>⬆️ Upload to Room</span>
+            <span class="text-[10px] opacity-75 font-normal">(Run on primary tablet)</span>
+          </button>
+          <button onclick="downloadFromCloudRoom()" class="btn-secondary text-xs flex flex-col py-2.5 hover:border-sky-500">
+            <span>⬇️ Connect & Download</span>
+            <span class="text-[10px] opacity-75 font-normal">(Run on other tablets)</span>
+          </button>
+        </div>
+        <div class="text-[11px] text-slate-400 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 mt-2">
+          💡 Once connected, changes automatically sync in the background across all devices using this code.
+        </div>
+        <div class="pt-2 text-right">
+          <button onclick="closeSyncModal()" class="btn-secondary text-xs">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OTHER MODALS (Teams, Members, Programs, Podium, Override, PIN) -->
   <div id="modal-team" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
       <h3 id="modal-team-title" class="text-base font-bold font-orbitron text-slate-100 mb-4">Add Team</h3>
@@ -408,7 +413,6 @@
     </div>
   </div>
 
-  <!-- Add/Edit Member Modal -->
   <div id="modal-member" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
       <h3 id="modal-member-title" class="text-base font-bold font-orbitron text-slate-100 mb-4">Add Participant</h3>
@@ -448,7 +452,6 @@
     </div>
   </div>
 
-  <!-- Create/Edit Program Modal -->
   <div id="modal-program" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-lg p-6 bg-[#080d19] border-slate-700 max-h-[90vh] overflow-y-auto">
       <h3 id="modal-program-title" class="text-base font-bold font-orbitron text-slate-100 mb-4">Create Program</h3>
@@ -474,13 +477,11 @@
             </select>
           </div>
         </div>
-
         <div>
           <label class="text-xs text-slate-400 block mb-1 font-semibold">Assign Competitors per Team</label>
           <p class="text-[11px] text-slate-400 mb-2">For individual events, select 1 participant per team. For team events, check participating squad members.</p>
           <div id="program-team-pickers-container" class="space-y-3"></div>
         </div>
-
         <div class="flex gap-3 pt-3">
           <button onclick="closeProgramModal()" class="btn-secondary flex-1">Cancel</button>
           <button onclick="saveProgramForm()" class="btn-primary flex-1">Save Program</button>
@@ -489,7 +490,6 @@
     </div>
   </div>
 
-  <!-- Program Podium Modal -->
   <div id="modal-podium" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
       <h3 id="podium-program-name" class="text-base font-bold font-orbitron text-slate-100 mb-1">Program Results</h3>
@@ -501,7 +501,6 @@
     </div>
   </div>
 
-  <!-- Participant Details Modal -->
   <div id="modal-participant-details" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
       <div class="flex items-center gap-3 mb-4">
@@ -525,7 +524,6 @@
     </div>
   </div>
 
-  <!-- Admin Score Override Modal -->
   <div id="modal-override-score" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
       <h3 class="text-base font-bold font-orbitron text-slate-100 mb-1">Edit / Override Score</h3>
@@ -556,7 +554,6 @@
     </div>
   </div>
 
-  <!-- Change PIN Modal -->
   <div id="modal-change-pin" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
       <h3 class="text-base font-bold font-orbitron text-slate-100 mb-4">Change Admin PIN</h3>
@@ -577,14 +574,12 @@
     </div>
   </div>
 
-  <!-- Toast Element -->
   <div id="toast" class="toast-box fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-xs z-50 shadow-lg"></div>
 
   <script>
-    // OFFICIAL PRODUCTION STORAGE KEY
     const STORAGE_KEY = 'FATH_2_0_PRODUCTION_APP_DATA';
+    const SYNC_CODE_KEY = 'FATH_2_0_SYNC_ROOM_CODE';
 
-    // CLEAN SLATE DATABASE (No demo teams or fake names)
     const DEFAULT_PROD_DATA = {
       adminPin: '@Fath#2026!',
       judgeKeys: {
@@ -600,6 +595,8 @@
     let appData = loadProductionData();
     let currentJudge = null;
     let currentScoringProgId = null;
+    let syncRoomCode = localStorage.getItem(SYNC_CODE_KEY) || '';
+    let autoSyncTimer = null;
 
     function loadProductionData() {
       try {
@@ -612,8 +609,11 @@
       return JSON.parse(JSON.stringify(DEFAULT_PROD_DATA));
     }
 
-    function saveProductionData() {
+    function saveProductionData(syncToCloud = true) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+      if (syncToCloud && syncRoomCode) {
+        pushToCloud();
+      }
     }
 
     function showToast(msg) {
@@ -623,23 +623,152 @@
       setTimeout(() => el.classList.remove('show'), 2200);
     }
 
-    // NAVIGATION
+    // CLOUD SYNC ENGINE (Option 2: 6-Character Room Code)
+    function openSyncModal() {
+      document.getElementById('sync-room-input').value = syncRoomCode;
+      document.getElementById('modal-sync').classList.remove('hidden');
+    }
+    function closeSyncModal() {
+      document.getElementById('modal-sync').classList.add('hidden');
+    }
+
+    function updateSyncBadge(status) {
+      const dot = document.getElementById('sync-dot');
+      const label = document.getElementById('sync-code-label');
+      if (!syncRoomCode) {
+        dot.className = "w-2 h-2 rounded-full bg-slate-500";
+        label.innerText = "Sync Offline";
+      } else if (status === 'syncing') {
+        dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+        label.innerText = `Syncing [${syncRoomCode}]`;
+      } else {
+        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        label.innerText = `Room: ${syncRoomCode}`;
+      }
+    }
+
+    async function pushToCloud() {
+      if (!syncRoomCode) return;
+      try {
+        updateSyncBadge('syncing');
+        await fetch(`https://ntfy.sh/fath2026_room_${syncRoomCode.toLowerCase()}`, {
+          method: 'POST',
+          body: JSON.stringify(appData),
+          headers: { 'Title': 'FATH_UPDATE', 'Priority': 'low' }
+        });
+        updateSyncBadge('connected');
+      } catch (err) {
+        console.error("Cloud push failed:", err);
+        updateSyncBadge('connected');
+      }
+    }
+
+    async function uploadToCloudRoom() {
+      const code = document.getElementById('sync-room-input').value.trim().toUpperCase();
+      if (!code || code.length < 3) { alert("Please enter a valid room code (3 to 8 characters)."); return; }
+      syncRoomCode = code;
+      localStorage.setItem(SYNC_CODE_KEY, syncRoomCode);
+      showToast(`Uploading fest data to room ${syncRoomCode}...`);
+      await pushToCloud();
+      startAutoSync();
+      closeSyncModal();
+      showToast(`Connected! Room ${syncRoomCode} is active.`);
+    }
+
+    async function downloadFromCloudRoom() {
+      const code = document.getElementById('sync-room-input').value.trim().toUpperCase();
+      if (!code || code.length < 3) { alert("Please enter a valid room code."); return; }
+      syncRoomCode = code;
+      localStorage.setItem(SYNC_CODE_KEY, syncRoomCode);
+      showToast(`Connecting to room ${syncRoomCode}...`);
+
+      try {
+        const res = await fetch(`https://ntfy.sh/fath2026_room_${syncRoomCode.toLowerCase()}/json?poll=1`);
+        const text = await res.text();
+        const lines = text.trim().split('\n').filter(Boolean);
+        let latestData = null;
+
+        for (let i = lines.length - 1; i >= 0; i--) {
+          try {
+            const parsed = JSON.parse(lines[i]);
+            if (parsed.message) {
+              const testData = JSON.parse(parsed.message);
+              if (testData.teams && testData.members) {
+                latestData = testData;
+                break;
+              }
+            }
+          } catch(e) {}
+        }
+
+        if (latestData) {
+          appData = latestData;
+          saveProductionData(false);
+          startAutoSync();
+          closeSyncModal();
+          refreshActiveView();
+          showToast(`Downloaded! All data synced with room ${syncRoomCode}.`);
+        } else {
+          alert(`No existing data found in room ${syncRoomCode}. Make sure you tapped 'Upload' first on Tablet 1.`);
+        }
+      } catch (err) {
+        alert("Failed to connect. Check internet connection.");
+      }
+    }
+
+    function startAutoSync() {
+      if (autoSyncTimer) clearInterval(autoSyncTimer);
+      if (!syncRoomCode) return;
+      updateSyncBadge('connected');
+
+      // Poll every 15 seconds for updates made by judges or other tablets
+      autoSyncTimer = setInterval(async () => {
+        try {
+          const res = await fetch(`https://ntfy.sh/fath2026_room_${syncRoomCode.toLowerCase()}/json?poll=1&since=30s`);
+          const text = await res.text();
+          const lines = text.trim().split('\n').filter(Boolean);
+          for (let i = lines.length - 1; i >= 0; i--) {
+            try {
+              const parsed = JSON.parse(lines[i]);
+              if (parsed.message) {
+                const newData = JSON.parse(parsed.message);
+                if (newData.teams && newData.members) {
+                  appData = newData;
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+                  refreshActiveView();
+                  break;
+                }
+              }
+            } catch(e) {}
+          }
+        } catch(e) {}
+      }, 15000);
+    }
+
+    function refreshActiveView() {
+      if (!document.getElementById('view-admin').classList.contains('hidden')) {
+        const activeTab = document.querySelector('.tab-active');
+        if (activeTab && activeTab.id === 'tab-btn-overview') renderOverview();
+        else if (activeTab && activeTab.id === 'tab-btn-management') renderManagement();
+        else if (activeTab && activeTab.id === 'tab-btn-results') renderJudgeResults();
+      } else if (!document.getElementById('view-judge').classList.contains('hidden')) {
+        renderJudgeProgramLists();
+      }
+    }
+
+    // APP ROUTING & VIEWS
     function hideAllViews() {
       document.getElementById('view-landing').classList.add('hidden');
       document.getElementById('view-judge').classList.add('hidden');
       document.getElementById('view-scoring-sheet').classList.add('hidden');
       document.getElementById('view-admin').classList.add('hidden');
     }
-
     function showLanding() {
       hideAllViews();
       document.getElementById('view-landing').classList.remove('hidden');
     }
 
-    // JUDGE AUTH
-    function showJudgeLogin() {
-      document.getElementById('modal-judge-login').classList.remove('hidden');
-    }
+    function showJudgeLogin() { document.getElementById('modal-judge-login').classList.remove('hidden'); }
     function closeJudgeLogin() {
       document.getElementById('modal-judge-login').classList.add('hidden');
       document.getElementById('judge-input-name').value = '';
@@ -650,13 +779,7 @@
       const key = document.getElementById('judge-input-key').value.trim();
       if (!name) { alert("Please enter your name"); return; }
       if (!appData.judgeKeys[key]) { alert("Invalid Judge Passkey"); return; }
-
-      currentJudge = {
-        id: appData.judgeKeys[key].id,
-        label: appData.judgeKeys[key].label,
-        name: name,
-        key: key
-      };
+      currentJudge = { id: appData.judgeKeys[key].id, label: appData.judgeKeys[key].label, name, key };
       closeJudgeLogin();
       openJudgePortal();
     }
@@ -667,36 +790,24 @@
       document.getElementById('judge-slot-tag').innerText = currentJudge.label;
       renderJudgeProgramLists();
     }
-    function exitJudgePortal() {
-      currentJudge = null;
-      showLanding();
-    }
+    function exitJudgePortal() { currentJudge = null; showLanding(); }
 
-    // ADMIN AUTH
-    function showAdminLogin() {
-      document.getElementById('modal-admin-login').classList.remove('hidden');
-    }
+    function showAdminLogin() { document.getElementById('modal-admin-login').classList.remove('hidden'); }
     function closeAdminLogin() {
       document.getElementById('modal-admin-login').classList.add('hidden');
       document.getElementById('admin-input-pin').value = '';
     }
     function verifyAdminAccess() {
       const pin = document.getElementById('admin-input-pin').value.trim();
-      if (pin === appData.adminPin) {
-        closeAdminLogin();
-        openAdminTerminal();
-      } else {
-        alert("Incorrect PIN Code");
-      }
+      if (pin === appData.adminPin) { closeAdminLogin(); openAdminTerminal(); }
+      else { alert("Incorrect PIN Code"); }
     }
     function openAdminTerminal() {
       hideAllViews();
       document.getElementById('view-admin').classList.remove('hidden');
       switchAdminTab('overview');
     }
-    function exitAdminPortal() {
-      showLanding();
-    }
+    function exitAdminPortal() { showLanding(); }
 
     function switchAdminTab(tab) {
       document.getElementById('tab-btn-overview').classList.remove('tab-active', 'text-slate-400');
@@ -722,11 +833,8 @@
       }
     }
 
-    // CALCULATION HELPERS
-    function getProgramScores(progId) {
-      return (appData.scores && appData.scores[progId]) ? appData.scores[progId] : {};
-    }
-
+    // CALCULATIONS
+    function getProgramScores(progId) { return (appData.scores && appData.scores[progId]) ? appData.scores[progId] : {}; }
     function getParticipantPoints(progId, partId) {
       const pScores = getProgramScores(progId);
       if (!pScores[partId]) return { j1: null, j2: null, total: 0, locked1: false, locked2: false };
@@ -754,11 +862,10 @@
           }
         });
       });
-
       return { teamTotals, studentTotals };
     }
 
-    // JUDGE PROGRAM LISTS & SCORING
+    // JUDGES LISTS & SCORING
     function renderJudgeProgramLists() {
       const stageInd = document.getElementById('judge-stage-ind-list');
       const stageTeam = document.getElementById('judge-stage-team-list');
@@ -771,7 +878,7 @@
       nonStageTeam.innerHTML = '';
 
       if (appData.programs.length === 0) {
-        stageInd.innerHTML = `<div class="p-4 text-xs text-slate-500 italic">No stage programs created yet.</div>`;
+        stageInd.innerHTML = `<div class="p-4 text-xs text-slate-500 italic">No programs created yet.</div>`;
         return;
       }
 
@@ -815,7 +922,6 @@
 
       hideAllViews();
       document.getElementById('view-scoring-sheet').classList.remove('hidden');
-
       document.getElementById('scoring-program-title').innerText = prog.name;
       document.getElementById('scoring-program-meta').innerText = `${prog.category.toUpperCase()} • ${prog.format.toUpperCase()}`;
 
@@ -836,15 +942,8 @@
 
       const container = document.getElementById('scoring-participants-container');
       container.innerHTML = '';
-
       const participants = prog.participants || [];
       participants.sort((a,b) => (a.codeLetter || '').localeCompare(b.codeLetter || ''));
-
-      if (participants.length === 0) {
-        container.innerHTML = `<div class="p-6 text-center text-xs text-slate-500">No participants assigned to this program yet.</div>`;
-        submitBtn.classList.add('hidden');
-        return;
-      }
 
       participants.forEach(part => {
         const { j1, j2 } = getParticipantPoints(prog.id, part.id);
@@ -867,13 +966,7 @@
           </div>
           <div class="flex items-center gap-2">
             <label class="text-xs text-slate-400">Marks:</label>
-            <input type="number" 
-                   step="any"
-                   data-part-id="${part.id}"
-                   value="${myScore}" 
-                   ${isLocked ? 'disabled' : ''} 
-                   class="input-field w-24 text-center font-bold text-sky-400 judge-score-input" 
-                   placeholder="0">
+            <input type="number" step="any" data-part-id="${part.id}" value="${myScore}" ${isLocked ? 'disabled' : ''} class="input-field w-24 text-center font-bold text-sky-400 judge-score-input" placeholder="0">
           </div>
         `;
         container.appendChild(card);
@@ -903,19 +996,15 @@
       });
 
       saveProductionData();
-      showToast("Scores submitted successfully.");
+      showToast("Scores submitted & synced.");
       openScoringSheet(currentScoringProgId);
     }
+    function backToJudgePrograms() { openJudgePortal(); }
 
-    function backToJudgePrograms() {
-      openJudgePortal();
-    }
-
-    // OVERVIEW RENDERING
+    // OVERVIEW
     function renderOverview() {
       const { teamTotals, studentTotals } = calculateStandings();
 
-      // Top Team
       let topTeamName = "No Scores Yet", topTeamPts = -1;
       appData.teams.forEach(t => {
         const pts = teamTotals[t.id] || 0;
@@ -924,7 +1013,6 @@
       document.getElementById('highlight-top-team').innerText = topTeamName;
       document.getElementById('highlight-top-team-pts').innerText = `${topTeamPts > 0 ? topTeamPts : 0} Total Points`;
 
-      // Top Student
       let topStudentName = "No Scores Yet", topStudentPts = -1;
       appData.members.forEach(m => {
         const pts = studentTotals[m.id] || 0;
@@ -933,7 +1021,6 @@
       document.getElementById('highlight-top-student').innerText = topStudentName;
       document.getElementById('highlight-top-student-pts').innerText = `${topStudentPts > 0 ? topStudentPts : 0} Individual Points`;
 
-      // Team Standings
       const standingsContainer = document.getElementById('overview-team-standings');
       standingsContainer.innerHTML = '';
       if (appData.teams.length === 0) {
@@ -958,7 +1045,6 @@
         });
       }
 
-      // Team Members (Side by Side)
       const membersContainer = document.getElementById('overview-team-members');
       membersContainer.innerHTML = '';
       if (appData.teams.length === 0) {
@@ -987,7 +1073,6 @@
                   <span class="text-xs text-slate-400">#${captain.chest}</span>
                 </div>
               ` : ''}
-
               <div class="space-y-1.5">
                 ${regularMembers.map(m => `
                   <div onclick="openParticipantDetails('${m.id}')" class="p-2 rounded bg-slate-900 border border-slate-800/80 cursor-pointer hover:border-slate-700 flex items-center justify-between text-xs">
@@ -1006,7 +1091,6 @@
         });
       }
 
-      // Schedules
       const stageSched = document.getElementById('overview-stage-schedule');
       const nonStageSched = document.getElementById('overview-nonstage-schedule');
       stageSched.innerHTML = '';
@@ -1032,14 +1116,12 @@
       }
     }
 
-    // PODIUM RESULTS MODAL
     function openPodiumModal(progId) {
       const prog = appData.programs.find(p => p.id === progId);
       if (!prog) return;
 
       document.getElementById('podium-program-name').innerText = prog.name;
       document.getElementById('podium-program-meta').innerText = `${prog.category.toUpperCase()} • ${prog.format.toUpperCase()}`;
-
       const container = document.getElementById('podium-results-container');
       container.innerHTML = '';
 
@@ -1047,7 +1129,6 @@
         const { total, j1, j2 } = getParticipantPoints(prog.id, part.id);
         return { ...part, total, j1, j2 };
       });
-
       scoredList.sort((a,b) => b.total - a.total);
 
       const hasScores = scoredList.some(s => s.total > 0);
@@ -1072,14 +1153,10 @@
           container.appendChild(div);
         });
       }
-
       document.getElementById('modal-podium').classList.remove('hidden');
     }
-    function closePodiumModal() {
-      document.getElementById('modal-podium').classList.add('hidden');
-    }
+    function closePodiumModal() { document.getElementById('modal-podium').classList.add('hidden'); }
 
-    // PARTICIPANT DETAILS MODAL
     function openParticipantDetails(memberId) {
       const member = appData.members.find(m => m.id === memberId);
       if (!member) return;
@@ -1087,17 +1164,12 @@
 
       document.getElementById('detail-name').innerText = member.name;
       document.getElementById('detail-team-chest').innerText = `${team ? team.name : ''} • Chest #${member.chest}`;
-      
       const avatarContainer = document.getElementById('detail-avatar');
-      if (member.photo) {
-        avatarContainer.innerHTML = `<img src="${member.photo}" class="w-full h-full object-cover">`;
-      } else {
-        avatarContainer.innerText = member.name.charAt(0);
-      }
+      if (member.photo) avatarContainer.innerHTML = `<img src="${member.photo}" class="w-full h-full object-cover">`;
+      else avatarContainer.innerText = member.name.charAt(0);
 
       const listContainer = document.getElementById('detail-programs-list');
       listContainer.innerHTML = '';
-
       let totalStudentPts = 0;
       appData.programs.forEach(prog => {
         const isPart = (prog.participants || []).some(p => p.id === member.id);
@@ -1110,17 +1182,11 @@
           listContainer.appendChild(div);
         }
       });
-
-      if (listContainer.children.length === 0) {
-        listContainer.innerHTML = `<span class="text-slate-500 italic">No individual programs entered.</span>`;
-      }
-
+      if (listContainer.children.length === 0) listContainer.innerHTML = `<span class="text-slate-500 italic">No individual programs entered.</span>`;
       document.getElementById('detail-total-pts').innerText = totalStudentPts;
       document.getElementById('modal-participant-details').classList.remove('hidden');
     }
-    function closeParticipantDetailsModal() {
-      document.getElementById('modal-participant-details').classList.add('hidden');
-    }
+    function closeParticipantDetailsModal() { document.getElementById('modal-participant-details').classList.add('hidden'); }
 
     // FEST MANAGEMENT
     function renderManagement() {
@@ -1128,7 +1194,6 @@
       renderManagementMembers();
       renderManagementPrograms();
     }
-
     function renderManagementTeams() {
       const container = document.getElementById('management-teams-list');
       container.innerHTML = '';
@@ -1167,14 +1232,11 @@
       }
       document.getElementById('modal-team').classList.remove('hidden');
     }
-    function closeTeamModal() {
-      document.getElementById('modal-team').classList.add('hidden');
-    }
+    function closeTeamModal() { document.getElementById('modal-team').classList.add('hidden'); }
     function saveTeamForm() {
       const id = document.getElementById('team-form-id').value;
       const name = document.getElementById('team-input-name').value.trim();
       const code = document.getElementById('team-input-code').value.trim().toUpperCase();
-
       if (!name || !code) { alert("Please complete team details."); return; }
 
       if (id) {
@@ -1186,7 +1248,7 @@
       saveProductionData();
       closeTeamModal();
       renderManagement();
-      showToast("Team saved.");
+      showToast("Team saved & synced.");
     }
     function editTeam(id) { openTeamModal(id); }
     function deleteTeam(id) {
@@ -1197,7 +1259,7 @@
       showToast("Team removed.");
     }
 
-    // MEMBERS MANAGEMENT
+    // MEMBERS
     function renderManagementMembers() {
       const tbody = document.getElementById('management-members-table');
       tbody.innerHTML = '';
@@ -1229,7 +1291,6 @@
       document.getElementById('member-form-id').value = id;
       const selectTeam = document.getElementById('member-input-team');
       selectTeam.innerHTML = appData.teams.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-
       document.getElementById('member-input-photo-file').value = '';
       document.getElementById('member-photo-base64').value = '';
 
@@ -1248,7 +1309,6 @@
         document.getElementById('member-input-role').value = 'Member';
       }
 
-      // Handle photo upload compression
       document.getElementById('member-input-photo-file').onchange = function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -1269,12 +1329,9 @@
         };
         reader.readAsDataURL(file);
       };
-
       document.getElementById('modal-member').classList.remove('hidden');
     }
-    function closeMemberModal() {
-      document.getElementById('modal-member').classList.add('hidden');
-    }
+    function closeMemberModal() { document.getElementById('modal-member').classList.add('hidden'); }
     function saveMemberForm() {
       const id = document.getElementById('member-form-id').value;
       const name = document.getElementById('member-input-name').value.trim();
@@ -1282,7 +1339,6 @@
       const role = document.getElementById('member-input-role').value;
       const teamId = document.getElementById('member-input-team').value;
       const photo = document.getElementById('member-photo-base64').value;
-
       if (!name || !chest) { alert("Please complete name and chest number."); return; }
 
       if (id) {
@@ -1295,7 +1351,7 @@
       saveProductionData();
       closeMemberModal();
       renderManagement();
-      showToast("Participant saved.");
+      showToast("Participant saved & synced.");
     }
     function editMember(id) { openMemberModal(id); }
     function deleteMember(id) {
@@ -1306,7 +1362,7 @@
       showToast("Participant removed.");
     }
 
-    // PROGRAMS MANAGEMENT
+    // PROGRAMS
     function renderManagementPrograms() {
       const tbody = document.getElementById('management-programs-table');
       tbody.innerHTML = '';
@@ -1348,9 +1404,7 @@
       renderProgramParticipantPickers();
       document.getElementById('modal-program').classList.remove('hidden');
     }
-    function closeProgramModal() {
-      document.getElementById('modal-program').classList.add('hidden');
-    }
+    function closeProgramModal() { document.getElementById('modal-program').classList.add('hidden'); }
 
     function renderProgramParticipantPickers() {
       const container = document.getElementById('program-team-pickers-container');
@@ -1372,7 +1426,6 @@
         if (format === 'individual') {
           const members = appData.members.filter(m => m.teamId === t.id);
           const currentPart = prog ? (prog.participants || []).find(p => p.teamId === t.id) : null;
-
           teamBox.innerHTML = `
             <div class="flex items-center justify-between mb-2">
               <span class="font-bold text-xs text-slate-200">${t.name}</span>
@@ -1387,7 +1440,6 @@
           const members = appData.members.filter(m => m.teamId === t.id);
           const currentPart = prog ? (prog.participants || []).find(p => p.teamId === t.id) : null;
           const selectedMembers = currentPart && currentPart.memberNames ? currentPart.memberNames : [];
-
           teamBox.innerHTML = `
             <div class="flex items-center justify-between mb-2">
               <span class="font-bold text-xs text-slate-200">${t.name} (Squad)</span>
@@ -1413,7 +1465,6 @@
       const name = document.getElementById('program-input-name').value.trim();
       const category = document.getElementById('program-input-cat').value;
       const format = document.getElementById('program-input-format').value;
-
       if (!name) { alert("Please enter program title."); return; }
 
       const participants = [];
@@ -1455,16 +1506,12 @@
         const p = appData.programs.find(x => x.id === id);
         p.name = name; p.category = category; p.format = format; p.participants = participants;
       } else {
-        appData.programs.push({
-          id: 'p_' + Date.now(),
-          name, category, format, participants
-        });
+        appData.programs.push({ id: 'p_' + Date.now(), name, category, format, participants });
       }
-
       saveProductionData();
       closeProgramModal();
       renderManagement();
-      showToast("Program saved.");
+      showToast("Program saved & synced.");
     }
     function editProgram(id) { openProgramModal(id); }
     function deleteProgram(id) {
@@ -1476,11 +1523,10 @@
       showToast("Program deleted.");
     }
 
-    // JUDGE RESULTS & ADMIN OVERRIDE
+    // RESULTS & OVERRIDES
     function renderJudgeResults() {
       const container = document.getElementById('results-programs-list');
       container.innerHTML = '';
-
       if (appData.programs.length === 0) {
         container.innerHTML = `<div class="p-6 text-center text-xs text-slate-500 italic">No programs available to display results.</div>`;
         return;
@@ -1513,9 +1559,7 @@
               <h4 class="font-bold text-slate-100 font-orbitron">${prog.name}</h4>
               <p class="text-[11px] text-slate-400 uppercase">${prog.category} • ${prog.format}</p>
             </div>
-            <button onclick="unlockAllJudgeLocks('${prog.id}')" class="text-[11px] text-amber-400 hover:underline">
-              🔓 Unlock Submissions
-            </button>
+            <button onclick="unlockAllJudgeLocks('${prog.id}')" class="text-[11px] text-amber-400 hover:underline">🔓 Unlock Submissions</button>
           </div>
           <table class="w-full text-left mt-2">
             <thead>
@@ -1544,12 +1588,9 @@
       document.getElementById('override-target-meta').innerText = `${prog.name} &bull; ${part.name}`;
       document.getElementById('override-j1-score').value = j1 !== null ? j1 : '';
       document.getElementById('override-j2-score').value = j2 !== null ? j2 : '';
-
       document.getElementById('modal-override-score').classList.remove('hidden');
     }
-    function closeOverrideModal() {
-      document.getElementById('modal-override-score').classList.add('hidden');
-    }
+    function closeOverrideModal() { document.getElementById('modal-override-score').classList.add('hidden'); }
     function saveScoreOverride() {
       const progId = document.getElementById('override-program-id').value;
       const partId = document.getElementById('override-participant-id').value;
@@ -1565,7 +1606,7 @@
       saveProductionData();
       closeOverrideModal();
       renderJudgeResults();
-      showToast("Score updated.");
+      showToast("Score updated & synced.");
     }
     function unlockJudgeLocksForProgram() {
       const progId = document.getElementById('override-program-id').value;
@@ -1584,15 +1625,13 @@
       }
     }
 
-    // PIN MANAGEMENT
+    // PIN
     function openChangePinModal() {
       document.getElementById('pin-current').value = '';
       document.getElementById('pin-new').value = '';
       document.getElementById('modal-change-pin').classList.remove('hidden');
     }
-    function closeChangePinModal() {
-      document.getElementById('modal-change-pin').classList.add('hidden');
-    }
+    function closeChangePinModal() { document.getElementById('modal-change-pin').classList.add('hidden'); }
     function saveNewAdminPin() {
       const cur = document.getElementById('pin-current').value;
       const neu = document.getElementById('pin-new').value.trim();
@@ -1601,10 +1640,10 @@
       appData.adminPin = neu;
       saveProductionData();
       closeChangePinModal();
-      showToast("Admin PIN updated.");
+      showToast("Admin PIN updated & synced.");
     }
 
-    // DOUBLE-TAP BACK PROTECTION
+    // DOUBLE-TAP BACK
     let backPressCount = 0;
     let backTimer = null;
     window.addEventListener('popstate', (e) => {
@@ -1626,7 +1665,12 @@
     });
     history.pushState(null, '', location.href);
 
-    // Initial View setup
+    // INIT
+    if (syncRoomCode) {
+      startAutoSync();
+    } else {
+      updateSyncBadge('offline');
+    }
     showLanding();
   </script>
 </body>
