@@ -304,7 +304,7 @@
           <div class="flex items-center justify-between mb-4">
             <div>
               <h3 class="text-base font-bold text-slate-100">Teams</h3>
-              <p class="text-xs text-slate-400">Create and manage competing teams.</p>
+              <p class="text-xs text-slate-400">Add unlimited competing teams.</p>
             </div>
             <button onclick="openTeamModal()" class="btn-primary text-xs">+ Add Team</button>
           </div>
@@ -316,7 +316,7 @@
           <div class="flex items-center justify-between mb-4">
             <div>
               <h3 class="text-base font-bold text-slate-100">Participants & Members</h3>
-              <p class="text-xs text-slate-400">Manage students, chest numbers, and team allocations.</p>
+              <p class="text-xs text-slate-400">Add unlimited participants across all teams.</p>
             </div>
             <button onclick="openMemberModal()" class="btn-primary text-xs">+ Add Member</button>
           </div>
@@ -341,7 +341,7 @@
           <div class="flex items-center justify-between mb-4">
             <div>
               <h3 class="text-base font-bold text-slate-100">Programs & Events</h3>
-              <p class="text-xs text-slate-400">Configure stage/non-stage events and assign competitors per team.</p>
+              <p class="text-xs text-slate-400">Add unlimited events and assign multiple participants per team.</p>
             </div>
             <button onclick="openProgramModal()" class="btn-primary text-xs">+ Create Program</button>
           </div>
@@ -440,7 +440,7 @@
     </div>
   </div>
 
-  <!-- ADD/EDIT TEAM MODAL (NO CODE FIELD) -->
+  <!-- ADD/EDIT TEAM MODAL -->
   <div id="modal-team" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
       <h3 id="modal-team-title" class="text-base font-bold text-slate-100 mb-4">Add Team</h3>
@@ -498,7 +498,7 @@
     </div>
   </div>
 
-  <!-- CREATE/EDIT PROGRAM MODAL (ALLOWS MULTIPLE PARTICIPANTS PER TEAM) -->
+  <!-- CREATE/EDIT PROGRAM MODAL -->
   <div id="modal-program" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-lg p-6 bg-[#080d19] border-slate-700 max-h-[90vh] overflow-y-auto">
       <h3 id="modal-program-title" class="text-base font-bold text-slate-100 mb-4">Create Program</h3>
@@ -518,7 +518,7 @@
           </div>
           <div>
             <label class="text-xs text-slate-400 block mb-1 font-medium">Format</label>
-            <select id="program-input-format" class="input-field font-medium">
+            <select id="program-input-format" class="input-field font-medium" onchange="renderProgramParticipantPickers()">
               <option value="individual">Individual</option>
               <option value="team">Team</option>
             </select>
@@ -652,17 +652,24 @@
         if (raw) {
           const parsed = JSON.parse(raw);
           if (!parsed.resetPin) parsed.resetPin = DEFAULT_PROD_DATA.resetPin;
+          if (!Array.isArray(parsed.teams)) parsed.teams = [];
+          if (!Array.isArray(parsed.members)) parsed.members = [];
+          if (!Array.isArray(parsed.programs)) parsed.programs = [];
+          if (!parsed.scores) parsed.scores = {};
           return parsed;
         }
       } catch (e) {
         console.error(e);
       }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PROD_DATA));
       return JSON.parse(JSON.stringify(DEFAULT_PROD_DATA));
     }
 
     function saveProductionData(syncToCloud = true) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+      } catch (err) {
+        console.error("Local storage error:", err);
+      }
       if (syncToCloud) {
         pushToCloud();
       }
@@ -740,7 +747,7 @@
             const parsed = JSON.parse(lines[i]);
             if (parsed.message) {
               const test = JSON.parse(parsed.message);
-              if (test.teams !== undefined && test.members !== undefined) {
+              if (Array.isArray(test.teams) && Array.isArray(test.members)) {
                 latest = test;
                 break;
               }
@@ -768,7 +775,7 @@
               const parsed = JSON.parse(lines[i]);
               if (parsed.message) {
                 const newData = JSON.parse(parsed.message);
-                if (newData.teams !== undefined && newData.members !== undefined) {
+                if (Array.isArray(newData.teams) && Array.isArray(newData.members)) {
                   appData = newData;
                   localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
                   refreshActiveView();
@@ -1435,13 +1442,13 @@
           const img = new Image();
           img.onload = function() {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 120;
+            const MAX_WIDTH = 64; // Tiny compressed avatar
             const scaleSize = MAX_WIDTH / img.width;
             canvas.width = MAX_WIDTH;
             canvas.height = img.height * scaleSize;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            document.getElementById('member-photo-base64').value = canvas.toDataURL('image/jpeg', 0.7);
+            document.getElementById('member-photo-base64').value = canvas.toDataURL('image/jpeg', 0.5);
           };
           img.src = evt.target.result;
         };
@@ -1523,7 +1530,6 @@
     }
     function closeProgramModal() { document.getElementById('modal-program').classList.add('hidden'); }
 
-    // Renders team boxes with multi-select checkboxes for all participants
     function renderProgramParticipantPickers() {
       const container = document.getElementById('program-team-pickers-container');
       container.innerHTML = '';
