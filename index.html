@@ -226,8 +226,8 @@
 
       <div class="cosmic-card p-5">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Participants Performance Order</h3>
-          <span class="text-xs text-slate-400">Order by Code Letter (A, B, C...)</span>
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Participants</h3>
+          <span class="text-xs text-slate-400">Sorted by Chest Number</span>
         </div>
         <div id="scoring-participants-container" class="space-y-3"></div>
         <div class="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between">
@@ -316,7 +316,7 @@
           <div class="flex items-center justify-between mb-4">
             <div>
               <h3 class="text-base font-bold text-slate-100">Participants & Members</h3>
-              <p class="text-xs text-slate-400">Manage students, chest numbers, photos, and team allocations.</p>
+              <p class="text-xs text-slate-400">Manage students, chest numbers, and team allocations.</p>
             </div>
             <button onclick="openMemberModal()" class="btn-primary text-xs">+ Add Member</button>
           </div>
@@ -341,7 +341,7 @@
           <div class="flex items-center justify-between mb-4">
             <div>
               <h3 class="text-base font-bold text-slate-100">Programs & Events</h3>
-              <p class="text-xs text-slate-400">Configure stage/non-stage events and assigned participants.</p>
+              <p class="text-xs text-slate-400">Configure stage/non-stage events and assign competitors per team.</p>
             </div>
             <button onclick="openProgramModal()" class="btn-primary text-xs">+ Create Program</button>
           </div>
@@ -440,7 +440,7 @@
     </div>
   </div>
 
-  <!-- OTHER MODALS -->
+  <!-- ADD/EDIT TEAM MODAL (NO CODE FIELD) -->
   <div id="modal-team" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
       <h3 id="modal-team-title" class="text-base font-bold text-slate-100 mb-4">Add Team</h3>
@@ -450,10 +450,6 @@
           <label class="text-xs text-slate-400 block mb-1 font-medium">Team Name</label>
           <input type="text" id="team-input-name" placeholder="e.g. Orion" class="input-field">
         </div>
-        <div>
-          <label class="text-xs text-slate-400 block mb-1 font-medium">Team Code</label>
-          <input type="text" id="team-input-code" placeholder="e.g. ORN" class="input-field uppercase font-bold">
-        </div>
         <div class="flex gap-3 pt-3">
           <button onclick="closeTeamModal()" class="btn-secondary flex-1">Cancel</button>
           <button onclick="saveTeamForm()" class="btn-primary flex-1">Save Team</button>
@@ -462,6 +458,7 @@
     </div>
   </div>
 
+  <!-- ADD/EDIT MEMBER MODAL -->
   <div id="modal-member" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-md p-6 bg-[#080d19] border-slate-700">
       <h3 id="modal-member-title" class="text-base font-bold text-slate-100 mb-4">Add Participant</h3>
@@ -501,6 +498,7 @@
     </div>
   </div>
 
+  <!-- CREATE/EDIT PROGRAM MODAL (ALLOWS MULTIPLE PARTICIPANTS PER TEAM) -->
   <div id="modal-program" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="cosmic-card w-full max-w-lg p-6 bg-[#080d19] border-slate-700 max-h-[90vh] overflow-y-auto">
       <h3 id="modal-program-title" class="text-base font-bold text-slate-100 mb-4">Create Program</h3>
@@ -520,15 +518,15 @@
           </div>
           <div>
             <label class="text-xs text-slate-400 block mb-1 font-medium">Format</label>
-            <select id="program-input-format" class="input-field font-medium" onchange="renderProgramParticipantPickers()">
+            <select id="program-input-format" class="input-field font-medium">
               <option value="individual">Individual</option>
               <option value="team">Team</option>
             </select>
           </div>
         </div>
         <div>
-          <label class="text-xs text-slate-300 block mb-1 font-semibold">Assign Competitors per Team</label>
-          <p class="text-[11px] text-slate-400 mb-2">For individual events, select 1 participant per team. For team events, check participating squad members.</p>
+          <label class="text-xs text-slate-300 block mb-1 font-semibold">Select Participating Members per Team</label>
+          <p class="text-[11px] text-slate-400 mb-2">Check one or more participants representing each team in this program.</p>
           <div id="program-team-pickers-container" class="space-y-3"></div>
         </div>
         <div class="flex gap-3 pt-3">
@@ -979,7 +977,7 @@
           if (part.teamId && teamTotals[part.teamId] !== undefined) {
             teamTotals[part.teamId] += total;
           }
-          if (prog.format === 'individual' && studentTotals[part.id] !== undefined) {
+          if (studentTotals[part.id] !== undefined) {
             studentTotals[part.id] += total;
           }
         });
@@ -1063,8 +1061,12 @@
 
       const container = document.getElementById('scoring-participants-container');
       container.innerHTML = '';
-      const participants = prog.participants || [];
-      participants.sort((a,b) => (a.codeLetter || '').localeCompare(b.codeLetter || ''));
+      const participants = [...(prog.participants || [])];
+      participants.sort((a,b) => {
+        const chestA = parseInt(a.chest) || 0;
+        const chestB = parseInt(b.chest) || 0;
+        return chestA - chestB;
+      });
 
       participants.forEach(part => {
         const { j1, j2 } = getParticipantPoints(prog.id, part.id);
@@ -1076,13 +1078,13 @@
         card.className = "p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-wrap items-center justify-between gap-4";
         card.innerHTML = `
           <div class="flex items-center gap-3">
-            <span class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 font-bold flex items-center justify-center text-sm border border-sky-500/20">
-              ${part.codeLetter || '-'}
+            <span class="w-10 h-10 rounded-lg bg-sky-500/10 text-sky-400 font-bold flex items-center justify-center text-sm border border-sky-500/20">
+              #${part.chest || '-'}
             </span>
             ${photoUrl ? `<img src="${photoUrl}" class="w-9 h-9 rounded-full object-cover border border-slate-700">` : ''}
             <div>
               <h4 class="font-bold text-sm text-slate-100">${part.name}</h4>
-              <p class="text-xs text-slate-400">Chest #: <span class="text-slate-200 font-semibold">${part.chest || '-'}</span> ${part.memberNames ? `• Squad: ${part.memberNames.join(', ')}` : ''}</p>
+              <p class="text-xs text-slate-400">${part.teamName ? `Team: <span class="text-slate-200 font-medium">${part.teamName}</span>` : ''}</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -1156,7 +1158,6 @@
           card.innerHTML = `
             <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
               <span class="font-bold">#${idx+1}</span>
-              <span class="font-semibold text-slate-300">${t.code}</span>
             </div>
             <h4 class="font-bold text-slate-100 text-sm">${t.name}</h4>
             <div class="mt-3 text-right">
@@ -1266,7 +1267,7 @@
             <div>
               <span class="text-[11px] font-bold text-amber-400 block">${medals[idx] || `#${idx+1}`}</span>
               <h4 class="font-bold text-xs text-slate-100">${item.name}</h4>
-              <span class="text-[10px] text-slate-400 font-medium">Chest: ${item.chest || '-'}</span>
+              <span class="text-[10px] text-slate-400 font-medium">Chest: #${item.chest || '-'}</span>
             </div>
             <div class="text-right">
               <span class="text-base font-extrabold text-sky-400">${item.total}</span>
@@ -1305,7 +1306,7 @@
           listContainer.appendChild(div);
         }
       });
-      if (listContainer.children.length === 0) listContainer.innerHTML = `<span class="text-slate-500 italic">No individual programs entered.</span>`;
+      if (listContainer.children.length === 0) listContainer.innerHTML = `<span class="text-slate-500 italic">No programs entered yet.</span>`;
       document.getElementById('detail-total-pts').innerText = totalStudentPts;
       document.getElementById('modal-participant-details').classList.remove('hidden');
     }
@@ -1329,7 +1330,6 @@
         div.innerHTML = `
           <div>
             <div class="font-bold text-slate-100">${t.name}</div>
-            <div class="text-slate-400 text-[10px] font-semibold">Code: ${t.code}</div>
           </div>
           <div class="flex gap-2">
             <button onclick="editTeam('${t.id}')" class="text-sky-400 hover:underline font-semibold">Edit</button>
@@ -1346,11 +1346,9 @@
         const t = appData.teams.find(x => x.id === id);
         document.getElementById('modal-team-title').innerText = "Edit Team";
         document.getElementById('team-input-name').value = t.name;
-        document.getElementById('team-input-code').value = t.code;
       } else {
         document.getElementById('modal-team-title').innerText = "Add Team";
         document.getElementById('team-input-name').value = '';
-        document.getElementById('team-input-code').value = '';
       }
       document.getElementById('modal-team').classList.remove('hidden');
     }
@@ -1358,14 +1356,13 @@
     function saveTeamForm() {
       const id = document.getElementById('team-form-id').value;
       const name = document.getElementById('team-input-name').value.trim();
-      const code = document.getElementById('team-input-code').value.trim().toUpperCase();
-      if (!name || !code) { alert("Please complete team details."); return; }
+      if (!name) { alert("Please complete team name."); return; }
 
       if (id) {
         const t = appData.teams.find(x => x.id === id);
-        t.name = name; t.code = code;
+        t.name = name;
       } else {
-        appData.teams.push({ id: 't_' + Date.now(), name, code });
+        appData.teams.push({ id: 't_' + Date.now(), name });
       }
       saveProductionData();
       closeTeamModal();
@@ -1396,7 +1393,7 @@
             ${m.photo ? `<img src="${m.photo}" class="w-6 h-6 rounded-full object-cover">` : ''}
             <span>${m.name}</span>
           </td>
-          <td class="p-3 font-semibold">${m.chest}</td>
+          <td class="p-3 font-semibold">#${m.chest}</td>
           <td class="p-3 font-medium">${team ? team.name : '-'}</td>
           <td class="p-3 font-semibold">${m.role === 'Captain' ? '👑 Captain' : 'Member'}</td>
           <td class="p-3 text-right">
@@ -1460,7 +1457,7 @@
       const role = document.getElementById('member-input-role').value;
       const teamId = document.getElementById('member-input-team').value;
       const photo = document.getElementById('member-photo-base64').value;
-      if (!name || !chest) { alert("Please complete name and chest number."); return; }
+      if (!name || !chest) { alert("Please enter both participant name and chest number."); return; }
 
       if (id) {
         const m = appData.members.find(x => x.id === id);
@@ -1526,56 +1523,39 @@
     }
     function closeProgramModal() { document.getElementById('modal-program').classList.add('hidden'); }
 
+    // Renders team boxes with multi-select checkboxes for all participants
     function renderProgramParticipantPickers() {
       const container = document.getElementById('program-team-pickers-container');
       container.innerHTML = '';
-      const format = document.getElementById('program-input-format').value;
       const progId = document.getElementById('program-form-id').value;
       const prog = progId ? appData.programs.find(p => p.id === progId) : null;
+      const existingPartIds = new Set((prog && prog.participants) ? prog.participants.map(p => p.id) : []);
 
       if (appData.teams.length === 0) {
         container.innerHTML = `<div class="p-3 text-xs text-slate-500 italic">Create teams first before assigning participants.</div>`;
         return;
       }
 
-      appData.teams.forEach((t, idx) => {
+      appData.teams.forEach(t => {
         const teamBox = document.createElement('div');
         teamBox.className = "p-3 rounded-lg bg-slate-900 border border-slate-800";
-        const codeChar = String.fromCharCode(65 + idx);
+        const members = appData.members.filter(m => m.teamId === t.id);
 
-        if (format === 'individual') {
-          const members = appData.members.filter(m => m.teamId === t.id);
-          const currentPart = prog ? (prog.participants || []).find(p => p.teamId === t.id) : null;
-          teamBox.innerHTML = `
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-bold text-xs text-slate-200">${t.name}</span>
-              <span class="text-[10px] text-sky-400 font-bold">Slot Letter: ${codeChar}</span>
-            </div>
-            <select class="input-field text-xs prog-ind-picker font-medium" data-team-id="${t.id}" data-code-letter="${codeChar}">
-              <option value="">-- No Participant Selected --</option>
-              ${members.map(m => `<option value="${m.id}" ${currentPart && currentPart.id === m.id ? 'selected' : ''}>${m.name} (#${m.chest})</option>`).join('')}
-            </select>
-          `;
-        } else {
-          const members = appData.members.filter(m => m.teamId === t.id);
-          const currentPart = prog ? (prog.participants || []).find(p => p.teamId === t.id) : null;
-          const selectedMembers = currentPart && currentPart.memberNames ? currentPart.memberNames : [];
-          teamBox.innerHTML = `
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-bold text-xs text-slate-200">${t.name} (Squad)</span>
-              <span class="text-[10px] text-sky-400 font-bold">Slot Letter: ${codeChar}</span>
-            </div>
-            <div class="space-y-1.5 max-h-32 overflow-y-auto">
-              ${members.map(m => `
-                <label class="flex items-center gap-2 text-xs text-slate-300 font-medium">
-                  <input type="checkbox" value="${m.name}" ${selectedMembers.includes(m.name) ? 'checked' : ''} class="prog-team-member-chk" data-team-id="${t.id}">
-                  <span>${m.name} (#${m.chest})</span>
-                </label>
-              `).join('')}
-              ${members.length === 0 ? `<p class="text-[11px] text-slate-500 italic">No members in this team.</p>` : ''}
-            </div>
-          `;
-        }
+        teamBox.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-xs text-slate-200">${t.name}</span>
+            <span class="text-[11px] text-slate-400">${members.length} members</span>
+          </div>
+          <div class="space-y-1.5 max-h-36 overflow-y-auto">
+            ${members.map(m => `
+              <label class="flex items-center gap-2 text-xs text-slate-300 font-medium cursor-pointer hover:text-white">
+                <input type="checkbox" value="${m.id}" ${existingPartIds.has(m.id) ? 'checked' : ''} class="prog-member-select-chk rounded bg-slate-800 border-slate-700 text-sky-500" data-team-id="${t.id}" data-team-name="${t.name}">
+                <span>${m.name} <span class="text-sky-400 font-semibold">(#${m.chest})</span></span>
+              </label>
+            `).join('')}
+            ${members.length === 0 ? `<p class="text-[11px] text-slate-500 italic">No members in this team yet.</p>` : ''}
+          </div>
+        `;
         container.appendChild(teamBox);
       });
     }
@@ -1588,39 +1568,20 @@
       if (!name) { alert("Please enter program title."); return; }
 
       const participants = [];
-      if (format === 'individual') {
-        const pickers = document.querySelectorAll('.prog-ind-picker');
-        pickers.forEach(p => {
-          const mId = p.value;
-          if (mId) {
-            const m = appData.members.find(x => x.id === mId);
-            if (m) {
-              participants.push({
-                id: m.id,
-                name: m.name,
-                chest: m.chest,
-                teamId: m.teamId,
-                codeLetter: p.dataset.codeLetter
-              });
-            }
-          }
-        });
-      } else {
-        appData.teams.forEach((t, idx) => {
-          const chks = document.querySelectorAll(`.prog-team-member-chk[data-team-id="${t.id}"]:checked`);
-          const memberNames = Array.from(chks).map(c => c.value);
-          if (memberNames.length > 0) {
-            participants.push({
-              id: t.id,
-              name: t.name,
-              chest: t.code,
-              teamId: t.id,
-              codeLetter: String.fromCharCode(65 + idx),
-              memberNames
-            });
-          }
-        });
-      }
+      const checkedBoxes = document.querySelectorAll('.prog-member-select-chk:checked');
+      checkedBoxes.forEach(chk => {
+        const mId = chk.value;
+        const m = appData.members.find(x => x.id === mId);
+        if (m) {
+          participants.push({
+            id: m.id,
+            name: m.name,
+            chest: m.chest,
+            teamId: m.teamId,
+            teamName: chk.dataset.teamName || ''
+          });
+        }
+      });
 
       if (id) {
         const p = appData.programs.find(x => x.id === id);
@@ -1661,7 +1622,8 @@
           const { j1, j2, total } = getParticipantPoints(prog.id, part.id);
           tableRows += `
             <tr class="border-b border-slate-800 text-xs">
-              <td class="py-2.5 font-semibold text-slate-100">${part.name} (#${part.chest || '-'})</td>
+              <td class="py-2.5 font-semibold text-slate-100">${part.name}</td>
+              <td class="py-2.5 font-semibold text-sky-400">#${part.chest || '-'}</td>
               <td class="py-2.5 text-center text-slate-300 font-medium">${j1 !== null ? j1 : '-'}</td>
               <td class="py-2.5 text-center text-slate-300 font-medium">${j2 !== null ? j2 : '-'}</td>
               <td class="py-2.5 text-center font-bold text-sky-400 text-sm">${total}</td>
@@ -1684,13 +1646,14 @@
             <thead>
               <tr class="text-[11px] text-slate-400 uppercase border-b border-slate-800 font-bold">
                 <th class="py-2">Participant</th>
+                <th class="py-2">Chest #</th>
                 <th class="py-2 text-center">Judge 1</th>
                 <th class="py-2 text-center">Judge 2</th>
                 <th class="py-2 text-center">Total Points</th>
                 <th class="py-2 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>${tableRows || '<tr><td colspan="5" class="py-3 text-center text-slate-500">No participants</td></tr>'}</tbody>
+            <tbody>${tableRows || '<tr><td colspan="6" class="py-3 text-center text-slate-500">No participants</td></tr>'}</tbody>
           </table>
         `;
         container.appendChild(card);
@@ -1704,7 +1667,7 @@
 
       document.getElementById('override-program-id').value = progId;
       document.getElementById('override-participant-id').value = partId;
-      document.getElementById('override-target-meta').innerText = `${prog.name} &bull; ${part.name}`;
+      document.getElementById('override-target-meta').innerText = `${prog.name} &bull; ${part.name} (#${part.chest || '-'})`;
       document.getElementById('override-j1-score').value = j1 !== null ? j1 : '';
       document.getElementById('override-j2-score').value = j2 !== null ? j2 : '';
       document.getElementById('modal-override-score').classList.remove('hidden');
