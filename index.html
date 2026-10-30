@@ -96,10 +96,9 @@
       <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-100">
         FATH <span class="text-sky-400">2.0</span>
       </h1>
-      <!-- Live Sync Status -->
       <div id="header-sync-status" class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700 flex items-center gap-1.5 select-none">
         <span class="w-2 h-2 rounded-full bg-emerald-400" id="sync-dot"></span>
-        <span id="sync-code-label">Cloud: Connected</span>
+        <span id="sync-code-label">Cloud: Live</span>
       </div>
     </div>
     <p class="text-xs sm:text-sm text-slate-400 tracking-normal mt-1 font-medium">
@@ -253,7 +252,7 @@
           </button>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="triggerCloudSync()" title="Force immediate cloud sync" class="text-xs bg-sky-950/80 border border-sky-800 hover:bg-sky-900 px-3 py-1.5 rounded-lg text-sky-300 font-semibold flex items-center gap-1">
+          <button onclick="triggerCloudSync()" title="Force instant push and pull" class="text-xs bg-sky-950/80 border border-sky-800 hover:bg-sky-900 px-3 py-1.5 rounded-lg text-sky-300 font-semibold flex items-center gap-1">
             <span>🔄</span> Sync Now
           </button>
           <button onclick="openChangePinModal()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-slate-300 font-medium">Change PIN</button>
@@ -525,7 +524,7 @@
         </div>
         <div>
           <label class="text-xs text-slate-300 block mb-1 font-semibold">Select Participating Members per Team</label>
-          <p class="text-[11px] text-slate-400 mb-2">Check any number of participants from each team for this event.</p>
+          <p class="text-[11px] text-slate-400 mb-2">Check participants from each team for this event.</p>
           <div id="program-team-pickers-container" class="space-y-3"></div>
         </div>
         <div class="flex gap-3 pt-3">
@@ -623,7 +622,7 @@
   <div id="toast" class="toast-box fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-slate-200 border border-slate-700 px-4 py-2 rounded-lg text-xs font-medium z-50 shadow-lg"></div>
 
   <script>
-    // RELIABLE GLOBAL CLOUD STORAGE RELAY
+    // AUTOMATIC LIVE MULTI-DEVICE REST PIPELINE
     const CLOUD_SYNC_ENDPOINT = 'https://api.jsonstorage.net/v1/json/fath2026/master_database';
     const STORAGE_KEY = 'FATH_2_0_PRODUCTION_APP_DATA';
     const SESSION_KEY = 'FATH_2_0_CURRENT_ACTIVE_SESSION';
@@ -715,7 +714,7 @@
       sessionStorage.removeItem(SESSION_KEY);
     }
 
-    // CLOUD SYNC ENGINE: REST PUT & GET
+    // DIRECT CLOUD STORAGE ENGINE
     async function pushToCloud() {
       if (isSaving) return;
       isSaving = true;
@@ -726,23 +725,15 @@
       if (label) label.innerText = "Cloud: Syncing...";
 
       try {
-        const res = await fetch(CLOUD_SYNC_ENDPOINT, {
+        await fetch(CLOUD_SYNC_ENDPOINT, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(appData)
         });
 
         if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-        if (label) label.innerText = "Cloud: Connected";
+        if (label) label.innerText = "Cloud: Live";
       } catch (err) {
-        // Fallback to secondary relay if primary times out
-        try {
-          await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(CLOUD_SYNC_ENDPOINT)}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(appData)
-          });
-        } catch(e) {}
         if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
         if (label) label.innerText = "Local Active";
       } finally {
@@ -761,29 +752,26 @@
           const remoteVer = remote.version || 0;
           const localVer = appData.version || 0;
 
-          // If remote has newer data, or local has no teams yet
           if (remoteVer > localVer || appData.teams.length === 0) {
             appData = remote;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
             refreshActiveView();
           }
         }
-      } catch (err) {
-        // Silent background catch
-      }
+      } catch (err) {}
     }
 
     function startBackgroundSync() {
       if (syncInterval) clearInterval(syncInterval);
-      // Fetch immediately on startup
       fetchFromCloud();
-      // Auto-poll every 5 seconds so all tablets see new programs and marks immediately
-      syncInterval = setInterval(fetchFromCloud, 5000);
+      // Auto-poll every 3 seconds for immediate reflection across all devices
+      syncInterval = setInterval(fetchFromCloud, 3000);
     }
 
     function triggerCloudSync() {
       pushToCloud().then(() => {
-        showToast("Synchronized! All connected devices are updating.");
+        fetchFromCloud();
+        showToast("Synchronized! All devices are updating.");
       });
     }
 
@@ -1714,7 +1702,7 @@
     });
     history.pushState(null, '', location.href);
 
-    // INITIALIZE CLOUD ENGINE & SESSION
+    // INITIATE CONTINUOUS MULTI-DEVICE SYNC
     startBackgroundSync();
 
     const restored = restoreSession();
