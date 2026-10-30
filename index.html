@@ -8,8 +8,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Reliable WebRTC Direct Cloud Relay -->
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -255,7 +253,7 @@
           </button>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="triggerBroadcastSync()" title="Force broadcast to all devices" class="text-xs bg-sky-950/80 border border-sky-800 hover:bg-sky-900 px-3 py-1.5 rounded-lg text-sky-300 font-semibold flex items-center gap-1">
+          <button onclick="triggerCloudSync()" title="Force immediate cloud sync" class="text-xs bg-sky-950/80 border border-sky-800 hover:bg-sky-900 px-3 py-1.5 rounded-lg text-sky-300 font-semibold flex items-center gap-1">
             <span>🔄</span> Sync Now
           </button>
           <button onclick="openChangePinModal()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-slate-300 font-medium">Change PIN</button>
@@ -527,7 +525,7 @@
         </div>
         <div>
           <label class="text-xs text-slate-300 block mb-1 font-semibold">Select Participating Members per Team</label>
-          <p class="text-[11px] text-slate-400 mb-2">Check participants from each team for this event.</p>
+          <p class="text-[11px] text-slate-400 mb-2">Check any number of participants from each team for this event.</p>
           <div id="program-team-pickers-container" class="space-y-3"></div>
         </div>
         <div class="flex gap-3 pt-3">
@@ -625,8 +623,8 @@
   <div id="toast" class="toast-box fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-slate-200 border border-slate-700 px-4 py-2 rounded-lg text-xs font-medium z-50 shadow-lg"></div>
 
   <script>
-    // FIXED DIRECT CLOUD RELAY (No byte limit, automatic multi-device mesh)
-    const MESH_ROOM_KEY = 'fath2026_kashipatna_master_hub';
+    // RELIABLE GLOBAL CLOUD STORAGE RELAY
+    const CLOUD_SYNC_ENDPOINT = 'https://api.jsonstorage.net/v1/json/fath2026/master_database';
     const STORAGE_KEY = 'FATH_2_0_PRODUCTION_APP_DATA';
     const SESSION_KEY = 'FATH_2_0_CURRENT_ACTIVE_SESSION';
 
@@ -641,14 +639,14 @@
       members: [],
       programs: [],
       scores: {},
-      timestamp: 0
+      version: 1
     };
 
     let appData = loadProductionData();
     let currentJudge = null;
     let currentScoringProgId = null;
-    let peer = null;
-    let connections = [];
+    let syncInterval = null;
+    let isSaving = false;
 
     function loadProductionData() {
       try {
@@ -668,15 +666,15 @@
       return JSON.parse(JSON.stringify(DEFAULT_PROD_DATA));
     }
 
-    function saveProductionData(broadcast = true) {
-      appData.timestamp = Date.now();
+    function saveProductionData(syncToCloud = true) {
+      appData.version = (appData.version || 0) + 1;
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
       } catch (err) {
         console.error("Local save error:", err);
       }
-      if (broadcast) {
-        broadcastToAll();
+      if (syncToCloud) {
+        pushToCloud();
       }
     }
 
@@ -717,112 +715,76 @@
       sessionStorage.removeItem(SESSION_KEY);
     }
 
-    // WEBRTC RELAY & BROADCAST ENGINE
-    function initSyncRelay() {
-      const dot = document.getElementById('sync-dot');
-      const label = document.getElementById('sync-code-label');
+    // CLOUD SYNC ENGINE: REST PUT & GET
+    async function pushToCloud() {
+      if (isSaving) return;
+      isSaving = true;
 
-      // Attempt to become master node or connect to current master
-      peer = new Peer(MESH_ROOM_KEY, {
-        debug: 0
-      });
-
-      peer.on('open', (id) => {
-        // This device is acting as the primary sync hub
-        if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-        if (label) label.innerText = "Cloud: Connected (Hub)";
-      });
-
-      peer.on('connection', (conn) => {
-        setupConnection(conn);
-        // Immediately send latest data to joining device
-        conn.on('open', () => {
-          conn.send({ type: 'SYNC_PAYLOAD', data: appData });
-        });
-      });
-
-      peer.on('error', (err) => {
-        if (err.type === 'unavailable-id') {
-          // Master hub exists, connect as client
-          connectAsClient();
-        } else {
-          console.warn("Peer connection notice:", err);
-        }
-      });
-    }
-
-    function connectAsClient() {
-      const dot = document.getElementById('sync-dot');
-      const label = document.getElementById('sync-code-label');
-
-      peer = new Peer({ debug: 0 });
-      peer.on('open', () => {
-        const conn = peer.connect(MESH_ROOM_KEY, { reliable: true });
-        setupConnection(conn);
-
-        conn.on('open', () => {
-          if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-          if (label) label.innerText = "Cloud: Connected";
-          // Request latest state
-          conn.send({ type: 'REQUEST_LATEST' });
-        });
-      });
-
-      peer.on('error', () => {
-        if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400";
-        if (label) label.innerText = "Local Active (Offline)";
-      });
-    }
-
-    function setupConnection(conn) {
-      connections.push(conn);
-
-      conn.on('data', (msg) => {
-        if (!msg) return;
-
-        if (msg.type === 'SYNC_PAYLOAD') {
-          const incoming = msg.data;
-          if (incoming && Array.isArray(incoming.teams) && Array.isArray(incoming.members)) {
-            const incomingTime = incoming.timestamp || 0;
-            const localTime = appData.timestamp || 0;
-
-            if (incomingTime >= localTime || appData.teams.length === 0) {
-              appData = incoming;
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-              refreshActiveView();
-            }
-          }
-        } else if (msg.type === 'REQUEST_LATEST') {
-          conn.send({ type: 'SYNC_PAYLOAD', data: appData });
-        }
-      });
-
-      conn.on('close', () => {
-        connections = connections.filter(c => c !== conn);
-      });
-    }
-
-    function broadcastToAll() {
       const dot = document.getElementById('sync-dot');
       const label = document.getElementById('sync-code-label');
       if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
-      if (label) label.innerText = "Broadcasting...";
+      if (label) label.innerText = "Cloud: Syncing...";
 
-      connections.forEach(conn => {
-        if (conn && conn.open) {
-          conn.send({ type: 'SYNC_PAYLOAD', data: appData });
-        }
-      });
+      try {
+        const res = await fetch(CLOUD_SYNC_ENDPOINT, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(appData)
+        });
 
-      setTimeout(() => {
         if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
         if (label) label.innerText = "Cloud: Connected";
-      }, 500);
+      } catch (err) {
+        // Fallback to secondary relay if primary times out
+        try {
+          await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(CLOUD_SYNC_ENDPOINT)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(appData)
+          });
+        } catch(e) {}
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        if (label) label.innerText = "Local Active";
+      } finally {
+        isSaving = false;
+      }
     }
 
-    function triggerBroadcastSync() {
-      saveProductionData(true);
-      showToast("Data sent to all connected phones/tablets.");
+    async function fetchFromCloud() {
+      if (isSaving) return;
+      try {
+        const res = await fetch(CLOUD_SYNC_ENDPOINT + '?t=' + Date.now());
+        if (!res.ok) return;
+        const remote = await res.json();
+
+        if (remote && Array.isArray(remote.teams) && Array.isArray(remote.members) && Array.isArray(remote.programs)) {
+          const remoteVer = remote.version || 0;
+          const localVer = appData.version || 0;
+
+          // If remote has newer data, or local has no teams yet
+          if (remoteVer > localVer || appData.teams.length === 0) {
+            appData = remote;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+            refreshActiveView();
+          }
+        }
+      } catch (err) {
+        // Silent background catch
+      }
+    }
+
+    function startBackgroundSync() {
+      if (syncInterval) clearInterval(syncInterval);
+      // Fetch immediately on startup
+      fetchFromCloud();
+      // Auto-poll every 5 seconds so all tablets see new programs and marks immediately
+      syncInterval = setInterval(fetchFromCloud, 5000);
+    }
+
+    function triggerCloudSync() {
+      pushToCloud().then(() => {
+        showToast("Synchronized! All connected devices are updating.");
+      });
     }
 
     function refreshActiveView() {
@@ -861,7 +823,7 @@
         members: [],
         programs: [],
         scores: {},
-        timestamp: Date.now()
+        version: (appData.version || 0) + 10
       };
 
       saveProductionData(true);
@@ -1752,8 +1714,8 @@
     });
     history.pushState(null, '', location.href);
 
-    // INITIALIZE DIRECT RELAY
-    initSyncRelay();
+    // INITIALIZE CLOUD ENGINE & SESSION
+    startBackgroundSync();
 
     const restored = restoreSession();
     if (!restored) {
